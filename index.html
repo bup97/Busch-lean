@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Busch LEAN">
+<meta name="theme-color" content="#0f6e56">
+<title>Busch LEAN</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--tx:#17202a;--mut:#6b7280;--bd:#e2e5ea;--pri:#0f6e56;--pri2:#e3f2ec;--warn:#d97706;--bad:#c62828;--ok:#15803d;--va:#16a34a;--nva:#f59e0b;--w:#dc2626;--inv:#f6c453}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1316;--card:#1a2025;--tx:#e8edf1;--mut:#9aa4ad;--bd:#2c343b;--pri:#3fbf95;--pri2:#163229;--inv:#a87d1f}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--card);border-bottom:1px solid var(--bd)}
+header h1{flex:1;margin:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .logo{font-weight:800;color:var(--pri)}
+.back,.info{border:0;background:var(--pri2);color:var(--pri);border-radius:10px;min-width:36px;height:36px;font-size:20px;font-weight:700;cursor:pointer}
+.info{font-size:13px;padding:0 10px}
+main{max-width:860px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom) + 40px)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:22px 2px 8px}
+h3{font-size:15px;margin:14px 0 6px}
+.hero h1{font-size:24px;line-height:1.2;margin:6px 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:10px}
+.card.link,.proj{cursor:pointer}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:6px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gap{gap:8px;justify-content:flex-start;flex-wrap:wrap}
+.mut{color:var(--mut)}.sm{font-size:12.5px}
+.empty{padding:22px;text-align:center;color:var(--mut);border:1.5px dashed var(--bd);border-radius:14px}
+input,select,textarea{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px 10px;-webkit-appearance:none;appearance:none}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px}
+.row input{flex:1}
+label.f{display:block}
+label.f span{display:block;font-size:12px;color:var(--mut);margin:0 0 3px 2px}
+label.f i{font-style:normal;opacity:.7}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.full{grid-column:1/-1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.wide{width:100%;margin-top:10px}
+.btn.del{color:var(--bad)}
+.ib{border:0;background:transparent;color:var(--mut);font-size:16px;padding:4px 7px;cursor:pointer;border-radius:8px}
+.ib:hover{background:var(--bg)}
+.lnk{border:0;background:none;color:var(--pri);font:inherit;font-weight:600;cursor:pointer;padding:0;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12px;background:var(--bg);border:1px solid var(--bd);border-radius:999px;padding:2px 9px}
+.chip.c{color:#fff;border:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tile .ic{font-size:24px}
+.seg,.tabs{display:flex;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:3px;gap:3px;margin-bottom:10px;overflow-x:auto}
+.seg button,.tabs button{flex:1;border:0;background:none;color:var(--mut);font:inherit;font-weight:600;padding:8px 6px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.seg button.on,.tabs button.on{background:var(--pri);color:#fff}
+.tabs button.on{background:var(--pri2);color:var(--pri)}
+.intro{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;background:var(--pri2);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px}
+.kpi span{display:block;font-size:12px;color:var(--mut)}
+.kpi b{font-size:20px}.kpi small{font-size:12px;font-weight:500;color:var(--mut)}
+.kpi i{display:block;font-size:11px;font-style:normal;color:var(--mut)}
+.live{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:sticky;top:57px;z-index:3;background:var(--bg);padding:4px 0 8px}
+.live div{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 8px;text-align:center}
+.live span{display:block;font-size:10.5px;color:var(--mut)}.live b{font-size:15px}
+.bar{height:9px;background:var(--bg);border-radius:9px;overflow:hidden;border:1px solid var(--bd)}
+.bar i{display:block;height:100%;background:var(--pri);border-radius:9px}
+.stack{display:flex;height:22px;border-radius:8px;overflow:hidden;border:1px solid var(--bd);margin:6px 0}
+.stack i{display:block;height:100%}
+.prog{margin:8px 0}.prog .row{font-size:13px;margin-bottom:3px}
+.chk{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}
+.chk:last-child{border:0}
+.chk b{width:22px;height:22px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:1.5px solid var(--bd);color:var(--mut)}
+.chk.ok b{background:var(--ok);border-color:var(--ok);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{padding:7px 6px;border-bottom:1px solid var(--bd);text-align:right}
+td:first-child,th:first-child{text-align:left}
+th{font-size:12px;color:var(--mut);font-weight:600}
+.good{color:var(--ok);font-weight:700}.badc{color:var(--bad);font-weight:700}
+.step h3{margin:0;font-size:15px}
+.clock{font:700 46px/1 ui-monospace,Menlo,monospace;text-align:center;padding:16px 0 4px}
+.cats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.cats button{border:0;border-radius:14px;padding:18px 6px;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.score{display:flex;gap:4px;margin-top:6px}
+.score button{flex:1;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:8px;padding:7px 0;font:inherit;font-weight:700;cursor:pointer}
+.score button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.q{padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}.q:last-child{border:0}
+.act.done .txt{text-decoration:line-through;opacity:.6}
+.st{border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.st.offen{background:#fde2e1;color:#9b1c1c}.st.arbeit{background:#fef3c7;color:#92400e}.st.erledigt{background:#dcfce7;color:#166534}
+.over{color:var(--bad);font-weight:700}
+.note{white-space:pre-wrap}
+.tip{background:var(--pri2);border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modal.hidden{display:none}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 18px)}
+.sheet h2{font-size:19px;text-transform:none;letter-spacing:0;color:var(--tx);margin:0 0 6px}
+.sheet ol{padding-left:20px}.sheet li{margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%);background:var(--tx);color:var(--card);padding:10px 16px;border-radius:999px;font-size:14px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+details summary{cursor:pointer;font-weight:600}
+svg text{fill:var(--tx);font-size:10.5px;font-family:inherit}
+svg{color:var(--tx)}
+svg .b{font-weight:700;font-size:11.5px}
+svg .sm{font-size:9.5px;fill:var(--mut)}
+.vsm .bx{fill:var(--card);stroke:var(--tx);stroke-width:1.3}
+.vsm .bx.bad{stroke:var(--bad);stroke-width:2.4}
+.vsm .db{fill:var(--bg);stroke:var(--bd)}
+.vsm .tri{fill:var(--inv);stroke:var(--tx);stroke-width:1}
+.vsm .info{fill:none;stroke:var(--mut);stroke-dasharray:5 4;stroke-width:1.3}
+.vsm .mat{fill:none;stroke:var(--tx);stroke-width:1.6}
+.vsm .tl{fill:none;stroke:var(--pri);stroke-width:2}
+.vsm .fac{fill:var(--card);stroke:var(--tx);stroke-width:1.3}
+.vsm .flow{font-weight:700;font-size:9.5px;fill:var(--pri)}
+.vsm .sum{fill:var(--pri2);stroke:var(--pri)}
+.chart .bok{fill:var(--pri)}.chart .bbad{fill:var(--bad)}
+.chart .takt{stroke:var(--bad);stroke-dasharray:6 4;stroke-width:2}
+.chart .tk{fill:var(--bad);font-weight:700}
+.chart .ax{stroke:var(--bd)}
+.fish .spine{stroke:var(--tx);stroke-width:3}
+.fish .bone{stroke:var(--tx);stroke-width:1.6}
+.fish .twig{stroke:var(--mut)}
+.fish .head{fill:var(--pri2);stroke:var(--pri);stroke-width:1.5}
+.fish .cat{font-weight:700;font-size:12.5px;fill:var(--pri)}
+.fish .cz{font-size:9.5px}.fish .mainc{font-size:9.5px;font-weight:700;fill:var(--bad)}
+.radar .rg{fill:none;stroke:var(--bd)}
+.radar .rv{fill:rgba(15,110,86,.25);stroke:var(--pri);stroke-width:2}
+.radar text{font-size:10px}
+.spag{background:var(--card);border-radius:10px;touch-action:manipulation;width:100%;height:auto;display:block}
+.spag .gl{stroke:var(--bd);stroke-width:.6}
+.spag .path{fill:none;stroke:var(--w);stroke-width:2;stroke-linejoin:round;opacity:.85}
+.spag .sta{fill:var(--pri2);stroke:var(--pri)}
+.zone text{font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<header id="hdr"></header>
+<main id="app"></main>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeM()"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast"></div>
+<script>
+/* ===== Grundlagen ===== */
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=parseFloat(String(v??'').replace(',','.'));return isFinite(n)?n:NaN};
+const has=v=>v!==''&&v!=null&&isFinite(num(v));
+const fmt=(n,d=1)=>isFinite(n)?n.toLocaleString('de-DE',{maximumFractionDigits:d}):'–';
+const trunc=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s};
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtT=s=>{const m=Math.floor(s/60);return String(m).padStart(2,'0')+':'+(s%60).toFixed(1).padStart(4,'0')};
+const pct=(a,b)=>b?a/b*100:0;
+const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%;${c?'background:'+c:''}"></i></div>`;
+const opt=(v,l,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
+const ARROW='<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>';
+
+const KEY='buschlean_v2';
+let S;
+function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}if(!S||!Array.isArray(S.projects))S={projects:[]};S.projects.forEach(fix)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Speichern nicht möglich')}}
+let V={view:'home',pid:null,tool:null,vv:'ist',vt:'daten',af:'offen',sm:'weg',aid:null,tRun:null,tLast:null,lst:'',live:null};
+const P=()=>S.projects.find(p=>p.id===V.pid);
+
+const newVsm=()=>({customer:{name:'',demand:'',shiftMin:'',shifts:'',breakMin:'',delivery:''},supplier:{name:'',delivery:''},info:{planning:'',custOrder:'',suppOrder:'',control:''},fg:'',steps:[]});
+const newStep=()=>({id:uid(),name:'',ct:'',co:'',avail:'',ops:'',par:'1',lot:'',scrap:'',inv:'',flow:'push'});
+const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
+function fix(p){const d=newProject(p.name);for(const k in d)if(p[k]==null)p[k]=d[k];if(!p.spag.st)p.spag.st=[];if(!p.muda.laps)p.muda.laps=[];}
+
+function upd(path,val){let o=P();const k=path.split('.');for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val;save();if(V.live)V.live()}
+function upr(path,val){upd(path,val);render()}
+function fld(label,path,val,o={}){return `<label class="f${o.cls?' '+o.cls:''}"><span>${label}${o.unit?` <i>(${o.unit})</i>`:''}</span><input ${o.num?'inputmode="decimal"':''} type="${o.type||'text'}" value="${esc(val)}" placeholder="${esc(o.ph||'')}" oninput="upd('${path}',this.value)"></label>`}
+function area(label,path,val,ph,rows=3){return `<label class="f"><span>${label}</span><textarea rows="${rows}" placeholder="${esc(ph||'')}" oninput="upd('${path}',this.value)">${esc(val)}</textarea></label>`}
+
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
+function modal(h){$('#sheet').innerHTML=h;$('#modal').classList.remove('hidden')}
+function closeM(){$('#modal').classList.add('hidden')}
+
+/* ===== Werkzeuge + Kurzanleitungen ===== */
+const TOOLS={
+vsm:{name:'Wertstrom',icon:'🗺️',short:'Material- und Informationsfluss vom Lieferanten bis zum Kunden – Ist- und Soll-Zustand mit Kennzahlen.',
+ guide:{why:'Die Wertstromanalyse zeigt den gesamten Fluss einer Produktfamilie vom Lieferanten bis zum Kunden. Sie macht Bestände, Wartezeiten und Engpässe sichtbar und zeigt, wie viel der Durchlaufzeit wirklich wertschöpfend ist. Im Wertstromdesign (Soll) planst du daraus den verbesserten Fluss.',
+ steps:['Produktfamilie festlegen: Produkte mit ähnlichen Prozessschritten zusammenfassen.','Beim Kunden starten: Tagesbedarf, Schichtmodell und Pausen eintragen – daraus ergibt sich der Kundentakt.','Den Prozess vor Ort ablaufen (am besten vom Versand rückwärts) und jeden Schritt mit Zykluszeit, Rüstzeit, Verfügbarkeit, Mitarbeitern, parallelen Plätzen und Losgröße erfassen.','Bestände vor jedem Schritt und im Fertigwarenlager zählen – die App rechnet sie in Reichweite (Arbeitstage) um.','Informationsfluss ergänzen: Wie kommen Kundenbestellung, Planung und Lieferantenabruf zustande? Wie wird zwischen den Schritten gesteuert (Push, FIFO, Supermarkt)?','In der Checkliste prüfen, ob alles vollständig ist, dann Karte und Kennzahlen auswerten.','Soll-Zustand anlegen („aus Ist übernehmen“) und Verbesserungen eintragen. Der Vergleich Ist ↔ Soll zeigt den Fortschritt, die Umsetzung läuft über den Maßnahmenplan.'],
+ tip:'Zeiten selbst vor Ort messen statt aus dem System zu übernehmen. Rote Prozesskästen bedeuten: effektive Zykluszeit liegt über dem Kundentakt.'}},
+muda:{name:'Verschwendung',icon:'🔍',short:'Die 8 Verschwendungsarten vor Ort beobachten, bewerten und abstellen.',
+ guide:{why:'Verschwendung ist alles, was Zeit oder Ressourcen kostet, ohne dass der Kunde dafür zahlt. Mit der Muda-Aufnahme dokumentierst du direkt am Arbeitsplatz, wo welche Verschwendung auftritt und wie viel Zeit sie pro Schicht kostet.',
+ steps:['Bereich und Zeitraum festlegen, Mitarbeiter vorher informieren.','Am Arbeitsplatz beobachten – nicht eingreifen.','Jede Verschwendung mit Art, Station und kurzer Beschreibung erfassen.','Dauer pro Vorkommen (Sekunden) und Häufigkeit pro Schicht schätzen oder messen.','Auswertung ansehen: Die größten Blöcke zuerst angehen.','Ideen direkt mit „→ Maßnahme“ in den Maßnahmenplan übernehmen.'],
+ tip:'Merkhilfe TIMWOODS: Transport, Inventory (Bestände), Motion (Bewegung), Waiting, Overproduction, Overprocessing, Defects, Skills.'}},
+time:{name:'Zeitaufnahme',icon:'⏱️',short:'Arbeitsabläufe stoppen und in wertschöpfend, notwendig und Verschwendung einteilen.',
+ guide:{why:'Die Zeitaufnahme zeigt, wie sich die Arbeitszeit am Platz zusammensetzt. Nur der wertschöpfende Anteil verändert das Produkt so, wie es der Kunde will – der Rest ist Ansatzpunkt für Verbesserungen.',
+ steps:['Station eintragen und Stoppuhr starten.','Optional eine Bezeichnung für den Abschnitt eingeben (z. B. „Schrauben holen“).','Am Ende jedes Abschnitts die passende Kategorie tippen: Grün = wertschöpfend (verändert das Produkt), Gelb = nicht wertschöpfend, aber notwendig (Prüfen, Scannen), Rot = Verschwendung (Suchen, Warten, Laufen).','Die Uhr läuft automatisch für den nächsten Abschnitt weiter.','Mehrere Zyklen aufnehmen und die Anteile auswerten.'],
+ tip:'Mindestens 5–10 Zyklen aufnehmen. Ausreißer nicht löschen, sondern notieren – sie zeigen Störungen.'}},
+spag:{name:'Spaghetti-Diagramm',icon:'🍝',short:'Laufwege aufzeichnen und Distanzen pro Zyklus und Schicht berechnen.',
+ guide:{why:'Das Spaghetti-Diagramm macht die Wege von Mitarbeitern oder Material sichtbar. Viele Kreuzungen und lange Strecken zeigen Bewegungs- und Transportverschwendung und sind der Ansatz für ein besseres Layout.',
+ steps:['Maßstab festlegen: Wie viele Meter entspricht ein Kästchen?','Im Modus „Station“ Arbeitsplätze, Regale und Lager setzen und benennen.','Im Modus „Weg“ der Reihe nach die Punkte antippen, die der Mitarbeiter in einem Zyklus abläuft.','Zyklen pro Schicht eintragen – die App rechnet die Laufstrecke und Gehzeit hoch.','Im Soll das Layout neu denken: Material zum Mitarbeiter bringen, nicht umgekehrt.'],
+ tip:'Einen kompletten Zyklus mitlaufen. Jeder Weg zählt – auch der zum Drucker oder zur Schublade.'}},
+greif:{name:'Greifraumanalyse',icon:'✋',short:'Griffe nach Greifzonen bewerten – Ergonomie und Bewegungsverschwendung.',
+ guide:{why:'Die Greifraumanalyse prüft, ob Teile und Werkzeuge im optimalen Greifraum liegen. Jeder Griff außerhalb kostet Zeit und belastet den Körper.',
+ steps:['Für jedes Teil bzw. Werkzeug am Platz einen Eintrag anlegen.','Greifzone wählen: A = Unterarm, Ellbogen am Körper · B = ausgestreckter Arm · C = Rumpf beugen oder drehen · D = Schritt nötig.','Anzahl Griffe pro Zyklus eintragen.','Auswertung: Häufige Griffe gehören in Zone A, C und D sollten verschwinden.','Verbesserungen (Teil näher, Schrägregal, Greifschale) als Maßnahme übernehmen.'],
+ tip:'Häufigkeit schlägt Entfernung: Ein Teil, das 20× pro Zyklus gegriffen wird, gehört direkt vor den Mitarbeiter.'}},
+ishi:{name:'Ishikawa',icon:'🐟',short:'Mögliche Ursachen eines Problems strukturiert nach den 6M sammeln.',
+ guide:{why:'Das Ishikawa- oder Fischgrätendiagramm hilft im Team, alle möglichen Ursachen eines Problems zu sammeln und zu ordnen, statt vorschnell eine Lösung zu wählen.',
+ steps:['Problem klar und messbar formulieren (Kopf des Fisches).','Ursachen den 6M zuordnen: Mensch, Maschine, Methode, Material, Milieu (Umwelt), Messung.','Erst sammeln, dann bewerten – beim Brainstorming nicht diskutieren.','Wahrscheinlichste Ursachen mit ★ markieren.','Hauptursachen mit 5-Why vertiefen und mit Daten bestätigen.'],
+ tip:'Mit dem Team direkt vor Ort machen – die Mitarbeiter am Prozess kennen die Ursachen am besten.'}},
+why:{name:'5-Why',icon:'❓',short:'Durch wiederholtes Nachfragen von Symptom zur Grundursache.',
+ guide:{why:'Mit der 5-Why-Methode gehst du von einem Symptom zur eigentlichen Ursache. So wird das Problem nachhaltig gelöst und nicht nur das Symptom behandelt.',
+ steps:['Problem konkret beschreiben (Was, Wo, Wann, Wie viel?).','Fragen: Warum ist das passiert? Antwort eintragen.','Auf jede Antwort erneut „Warum?“ fragen – bis zu fünfmal oder bis eine beeinflussbare Ursache erreicht ist.','Grundursache festhalten.','Gegenmaßnahme ableiten und in den Maßnahmenplan übernehmen.'],
+ tip:'Gegenprobe: Die Kette rückwärts mit „deshalb“ lesen. Nie bei „Mitarbeiter hat Fehler gemacht“ stehen bleiben – frag, warum der Fehler möglich war.'}},
+s5:{name:'5S-Audit',icon:'🧹',short:'Ordnung und Sauberkeit am Arbeitsplatz bewerten und den Verlauf verfolgen.',
+ guide:{why:'5S schafft die Basis für stabile Prozesse: Sortieren, Systematisieren, Säubern, Standardisieren, Selbstdisziplin. Mit regelmäßigen Audits wird der Stand messbar.',
+ steps:['Neues Audit anlegen und Bereich eintragen.','Jede Frage vor Ort bewerten: 0 = nicht erfüllt … 4 = vollständig erfüllt.','Das Netzdiagramm zeigt Stärken und Schwächen je S.','Abweichungen als Maßnahmen übernehmen.','Audit regelmäßig wiederholen (z. B. monatlich) und den Verlauf beobachten.'],
+ tip:'Vorher-/Nachher-Fotos sind die beste Motivation fürs Team.'}},
+act:{name:'Maßnahmenplan',icon:'✅',short:'Alle Maßnahmen mit Verantwortlichem, Termin und Status an einem Ort.',
+ guide:{why:'Der Maßnahmenplan sammelt alle Verbesserungen aus den Werkzeugen und sorgt dafür, dass sie umgesetzt werden. Er ist die Grundlage für die Fortschrittskennzahlen.',
+ steps:['Maßnahme konkret formulieren (Was genau wird geändert?).','Verantwortlichen und Termin festlegen.','Status antippen, um ihn weiterzuschalten: offen → in Arbeit → erledigt.','Überfällige Maßnahmen sind rot markiert.','Regelmäßig im Team durchgehen, z. B. in der Shopfloor-Runde.'],
+ tip:'Eine Maßnahme ohne Namen und Termin ist nur eine Idee.'}},
+notes:{name:'Notizen',icon:'📝',short:'Beobachtungen, Gesprächsnotizen und Ideen zum Projekt.',
+ guide:{why:'Hier sammelst du alles, was nicht in ein Werkzeug passt oder was du schnell festhalten willst.',
+ steps:['Notiz schreiben und optional einem Werkzeug zuordnen.','Zugeordnete Notizen erscheinen auch direkt im jeweiligen Werkzeug.'],tip:''}}
+};
+const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','act','notes'];
+
+const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
+const CAT={ws:['Wertschöpfend','var(--va)'],nws:['Notwendig','var(--nva)'],v:['Verschwendung','var(--w)']};
+const ZONES=[['A','Ideal','Unterarm, Ellbogen am Körper','#16a34a'],['B','Erweitert','Ausgestreckter Arm','#84cc16'],['C','Ungünstig','Rumpf beugen oder drehen','#f59e0b'],['D','Kritisch','Schritt / Gehen nötig','#dc2626']];
+const M6=['Mensch','Maschine','Methode','Material','Milieu','Messung'];
+const FIVE_S=[['Sortieren',['Nur benötigte Materialien und Werkzeuge am Platz','Keine defekten oder unnötigen Gegenstände','Rote-Karte-Bereich vorhanden und genutzt','Persönliche Gegenstände sind geregelt']],
+['Systematisieren',['Jeder Gegenstand hat einen festen, gekennzeichneten Platz','Werkzeuge in Griffweite, nach Nutzung angeordnet','Boden- und Lagerplatzmarkierungen vorhanden','Mindest-/Maximalbestände sichtbar']],
+['Säubern',['Arbeitsplatz und Boden sauber','Vorrichtungen/Maschinen sauber, Schmutzquellen bekannt','Reinigungsplan vorhanden und gepflegt','Reinigungsmittel verfügbar']],
+['Standardisieren',['Standards visualisiert (Fotos, Arbeitsanweisungen)','Abweichungen auf einen Blick erkennbar','Verantwortlichkeiten festgelegt','Standards sind aktuell']],
+['Selbstdisziplin',['Standards werden eingehalten','Audits finden regelmäßig statt','Maßnahmen aus dem letzten Audit umgesetzt','Mitarbeiter kennen die 5S-Ziele']]];
+
+/* ===== Navigation ===== */
+function go(v){V.view=v;render();window.scrollTo(0,0)}
+function openP(id){V.pid=id;go('project')}
+function openT(id){V.tool=id;go('tool')}
+function guide(id){const t=TOOLS[id],g=t.guide;modal(`<h2>${t.icon} ${t.name}</h2><h3>Wofür?</h3><p>${g.why}</p><h3>So geht's</h3><ol>${g.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}<button class="btn pri wide" onclick="closeM()">Verstanden</button>`)}
+const intro=id=>`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
+function hdr(title,back,tool){return `${back?`<button class="back" onclick="${back}">‹</button>`:''}<h1>${title}</h1>${tool?`<button class="info" onclick="guide('${tool}')">ⓘ Anleitung</button>`:''}`}
+
+function render(){
+ V.live=null;const h=$('#hdr'),a=$('#app');
+ if(V.view==='project'&&!P())V.view='home';
+ if(V.view==='home'){h.innerHTML=hdr('<span class="logo">Busch</span> LEAN');a.innerHTML=homeV()}
+ else if(V.view==='lib'){h.innerHTML=hdr('Werkzeuge & Anleitungen',"go('home')");a.innerHTML=libV()}
+ else if(V.view==='project'){h.innerHTML=hdr(esc(P().name),"go('home')");a.innerHTML=projectV(P())}
+ else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(t.icon+' '+t.name,"go('project')",V.tool);a.innerHTML=R[V.tool](p)}
+}
+
+/* ===== Startseite & Projekt ===== */
+function projStats(p){const t=p.actions.length,d=p.actions.filter(a=>a.status==='erledigt').length;return{compl:vcomp(p.vsm.ist),total:t,done:d}}
+function homeV(){
+ const list=S.projects.slice().sort((a,b)=>b.created-a.created).map(p=>{const k=projStats(p);return `<div class="card proj" onclick="openP('${p.id}')"><div class="row"><b>${esc(p.name)}</b><span class="mut sm">${new Date(p.created).toLocaleDateString('de-DE')}</span></div>${p.desc?`<div class="mut sm">${esc(trunc(p.desc,120))}</div>`:''}<div class="chips"><span class="chip">Wertstrom ${k.compl}%</span><span class="chip">Maßnahmen ${k.done}/${k.total}</span><span class="chip">${p.muda.obs.length} Verschwendungen</span></div></div>`}).join('');
+ return `<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung.</p></section>
+ <div class="row gap" style="flex-wrap:nowrap"><input id="np" placeholder="Neues Projekt, z. B. Endmontage" onkeydown="if(event.key==='Enter')addP()"><button class="btn pri" onclick="addP()">Anlegen</button></div>
+ <h2>Projekte</h2>${list||'<div class="empty">Noch keine Projekte. Lege oben dein erstes an.</div>'}
+ <h2>Mehr</h2><div class="card link row" onclick="go('lib')"><span>📘 Lean-Werkzeuge & Kurzanleitungen</span><span class="mut">›</span></div>
+ <div class="card"><b>Datensicherung</b><p class="mut sm" style="margin:4px 0 10px">Die Daten liegen nur auf diesem Gerät. Exportiere regelmäßig eine Sicherung.</p><div class="row gap"><button class="btn sm" onclick="exportData()">⬇︎ Exportieren</button><label class="btn sm">⬆︎ Importieren<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div></div>`;
+}
+function libV(){return ORDER.map(id=>{const t=TOOLS[id];return `<div class="card link" onclick="guide('${id}')"><div class="row"><b>${t.icon} ${t.name}</b><span class="lnk">Anleitung ›</span></div><div class="mut sm">${t.short}</div></div>`}).join('')}
+function addP(){const e=$('#np'),n=e.value.trim();if(!n){e.focus();return}const p=newProject(n);S.projects.push(p);save();openP(p.id)}
+function delP(){const p=P();if(!confirm(`Projekt „${p.name}“ mit allen Daten löschen?`))return;S.projects=S.projects.filter(x=>x!==p);save();go('home')}
+function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`busch-lean-sicherung-${today()}.json`;document.body.appendChild(a);a.click();a.remove()}
+function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.projects))throw 0;if(!confirm('Vorhandene Daten durch die Sicherung ersetzen?'))return;S=d;S.projects.forEach(fix);save();render();toast('Sicherung importiert')}catch(e){alert('Datei ist keine gültige Busch-LEAN-Sicherung.')}};r.readAsText(f)}
+
+const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`};
+
+function projectV(p){
+ const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
+ const dlzRed=isFinite(ci.invDays)&&ci.invDays>0&&isFinite(cs.invDays)&&cs.invDays>0?(1-cs.invDays/ci.invDays)*100:NaN;
+ const kp=(l,a,b,u,d)=>`<div class="kpi"><span>${l}</span><b>${a}<small> ${u}</small></b><i>Soll: ${b} ${u}</i></div>`;
+ return `<div class="card">${fld('Projektname','name',p.name)}<div style="height:8px"></div>${area('Beschreibung / Ziel','desc',p.desc,'z. B. Durchlaufzeit Endmontage um 30 % senken',2)}</div>
+ <h2>Ergebniskennzahlen (Ist)</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
+ <h2>Fortschritt</h2><div class="card">
+  ${progRow('Ist-Aufnahme vollständig',k.compl+' %',k.compl)}
+  ${progRow('Soll-Zustand definiert',sollC+' %',sollC)}
+  ${progRow('Maßnahmen umgesetzt',`${k.done} / ${k.total}`,pct(k.done,k.total))}
+  ${isFinite(dlzRed)?`<p class="sm" style="margin:8px 0 0">Geplante DLZ-Reduktion Ist → Soll: <b class="${dlzRed>0?'good':'badc'}">${fmt(dlzRed,0)} %</b></p>`:''}
+ </div>
+ <h2>Werkzeuge</h2><div class="tiles">${ORDER.map(id=>{const t=TOOLS[id];return `<div class="tile" onclick="openT('${id}')"><div class="ic">${t.icon}</div><b>${t.name}</b><span class="mut sm">${STAT[id](p)}</span></div>`}).join('')}</div>
+ <div style="margin-top:24px"><button class="btn del sm" onclick="delP()">Projekt löschen</button></div>`;
+}
+const progRow=(l,v,p)=>`<div class="prog"><div class="row"><span>${l}</span><b>${v}</b></div>${bar(p)}</div>`;
+
+/* ===== Notizen (auch pro Werkzeug) ===== */
+function noteCard(p,n){return `<div class="card"><div class="row"><span class="mut sm">${new Date(n.t).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}${n.tag&&TOOLS[n.tag]?' · '+TOOLS[n.tag].icon+' '+TOOLS[n.tag].name:''}</span><button class="ib" onclick="delNote('${n.id}')">✕</button></div><div class="note">${esc(n.text)}</div></div>`}
+function notesBox(p,tool){const ns=p.notes.filter(n=>n.tag===tool).sort((a,b)=>b.t-a.t);return `<h2>Notizen</h2><div class="card"><textarea id="nb" rows="2" placeholder="Notiz zu ${TOOLS[tool].name}…"></textarea><div style="margin-top:8px"><button class="btn sm" onclick="addNote('${tool}','nb')">+ Notiz hinzufügen</button></div></div>${ns.map(n=>noteCard(p,n)).join('')}`}
+function addNote(tag,el){const e=document.getElementById(el),t=e.value.trim();if(!t)return;P().notes.push({id:uid(),text:t,tag:tag||'',t:Date.now()});save();render();toast('Notiz gespeichert')}
+function delNote(id){if(!confirm('Notiz löschen?'))return;const p=P();p.notes=p.notes.filter(n=>n.id!==id);save();render()}
+function notesV(p){const ns=p.notes.slice().sort((a,b)=>b.t-a.t);return intro('notes')+`<div class="card"><textarea id="nt" rows="4" placeholder="Beobachtung, Idee, Gesprächsnotiz…"></textarea><div class="row" style="margin-top:8px"><select id="ng" style="flex:1">${opt('','Allgemein','')}${ORDER.filter(x=>x!=='notes').map(id=>opt(id,TOOLS[id].name,'')).join('')}</select><button class="btn pri" onclick="addNote(document.getElementById('ng').value,'nt')">Speichern</button></div></div>${ns.map(n=>noteCard(p,n)).join('')||'<div class="empty">Noch keine Notizen.</div>'}`}
+
+/* ===== Maßnahmen ===== */
+function addAction(text,src){if(!text||!String(text).trim()){toast('Kein Text für die Maßnahme');return}P().actions.push({id:uid(),text:String(text).trim(),who:'',due:'',status:'offen',src:src||'',created:Date.now()});save();toast('Als Maßnahme übernommen')}
+const ST_NEXT={offen:'in Arbeit','in Arbeit':'erledigt',erledigt:'offen'};
+function cycleSt(id){const a=P().actions.find(x=>x.id===id);a.status=ST_NEXT[a.status]||'offen';save();render()}
+function delAct(id){if(!confirm('Maßnahme löschen?'))return;const p=P();p.actions=p.actions.filter(a=>a.id!==id);save();render()}
+function newAct(){const t=$('#at').value.trim();if(!t){$('#at').focus();return}P().actions.push({id:uid(),text:t,who:$('#aw').value.trim(),due:$('#ad').value,status:'offen',src:'',created:Date.now()});save();render()}
+function actV(p){
+ const order={offen:0,'in Arbeit':1,erledigt:2},td=today();
+ const all=p.actions,done=all.filter(a=>a.status==='erledigt').length,over=all.filter(a=>a.status!=='erledigt'&&a.due&&a.due<td).length;
+ let list=all.slice();if(V.af==='offen')list=list.filter(a=>a.status!=='erledigt');if(V.af==='erledigt')list=list.filter(a=>a.status==='erledigt');
+ list.sort((a,b)=>order[a.status]-order[b.status]||(a.due||'9').localeCompare(b.due||'9'));
+ return intro('act')+`<div class="card">${progRow('Umsetzungsgrad',`${done} / ${all.length}`,pct(done,all.length))}${over?`<p class="sm over" style="margin:6px 0 0">${over} Maßnahme(n) überfällig</p>`:''}</div>
+ <div class="card"><input id="at" placeholder="Was wird gemacht?"><div class="grid2" style="margin-top:8px"><input id="aw" placeholder="Wer?"><input id="ad" type="date"></div><button class="btn pri wide" onclick="newAct()">+ Maßnahme anlegen</button></div>
+ <div class="seg">${[['offen','Offen'],['alle','Alle'],['erledigt','Erledigt']].map(([k,l])=>`<button class="${V.af===k?'on':''}" onclick="V.af='${k}';render()">${l}</button>`).join('')}</div>
+ ${list.map(a=>{const i=p.actions.indexOf(a),late=a.status!=='erledigt'&&a.due&&a.due<td;return `<div class="card act ${a.status==='erledigt'?'done':''}"><div class="row"><button class="st ${a.status==='in Arbeit'?'arbeit':a.status}" onclick="cycleSt('${a.id}')">${a.status}</button>${a.src?`<span class="chip">${esc(a.src)}</span>`:''}<span style="flex:1"></span><button class="ib" onclick="delAct('${a.id}')">✕</button></div><input class="txt" style="margin-top:8px" value="${esc(a.text)}" oninput="upd('actions.${i}.text',this.value)"><div class="grid2" style="margin-top:6px"><input placeholder="Verantwortlich" value="${esc(a.who)}" oninput="upd('actions.${i}.who',this.value)"><input type="date" class="${late?'over':''}" value="${esc(a.due)}" onchange="upr('actions.${i}.due',this.value)"></div>${late?'<div class="sm over" style="margin-top:4px">überfällig</div>':''}</div>`}).join('')||'<div class="empty">Keine Maßnahmen in dieser Ansicht.</div>'}`+notesBox(p,'act');
+}
+
+/* ===== Wertstrom ===== */
+function vcalc(v){
+ const c=v.customer,d=num(c.demand),sm=num(c.shiftMin),sh=num(c.shifts),br=num(c.breakMin)||0;
+ const avail=sh*(sm-br)*60,takt=avail/d;
+ const steps=v.steps.map(s=>{const ct=num(s.ct),par=num(s.par)||1,av=(num(s.avail)||100)/100,eff=ct/par,days=num(s.inv)/d;return{...s,ctN:ct,eff,days,util:eff*d/(avail*av)*100,over:isFinite(takt)&&eff>takt}});
+ const fgDays=num(v.fg)/d;
+ const invDays=steps.reduce((a,s)=>a+(isFinite(s.days)?s.days:0),0)+(isFinite(fgDays)?fgDays:0);
+ const bz=steps.reduce((a,s)=>a+(isFinite(s.ctN)?s.ctN:0),0);
+ const dlzS=invDays*avail+bz,flow=bz>0&&isFinite(dlzS)&&dlzS>0?bz/dlzS*100:NaN;
+ const bottleneck=steps.reduce((m,s)=>isFinite(s.eff)&&(!m||s.eff>m.eff)?s:m,null);
+ const ops=steps.reduce((a,s)=>a+(num(s.ops)||0),0);
+ const invPcs=steps.reduce((a,s)=>a+(num(s.inv)||0),0)+(num(v.fg)||0);
+ return{d,avail,takt,steps,fgDays,invDays:steps.length||has(v.fg)?invDays:NaN,bz,flow,bottleneck,ops,opsTheo:bz/takt,invPcs};
+}
+function vchecks(v){
+ const c=v.customer,st=v.steps,all=f=>st.length>0&&st.every(f),t=x=>!!String(x||'').trim();
+ return [
+ ['Kunde benannt',t(c.name),'Wer erhält das Produkt (extern oder Folgeprozess)?'],
+ ['Kundenbedarf pro Tag',has(c.demand),'Stück pro Arbeitstag – Basis für den Kundentakt'],
+ ['Schichtdauer & Anzahl Schichten',has(c.shiftMin)&&has(c.shifts),'Ergibt mit den Pausen die verfügbare Zeit'],
+ ['Pausen je Schicht',has(c.breakMin),'0 eintragen, wenn keine Pausen abgezogen werden'],
+ ['Lieferfrequenz zum Kunden',t(c.delivery),'z. B. 1× täglich per LKW'],
+ ['Lieferant & Anlieferfrequenz',t(v.supplier.name)&&t(v.supplier.delivery),'Hauptlieferant bzw. Wareneingang'],
+ ['Mindestens 2 Prozessschritte',st.length>=2,'Ein Prozesskasten pro Schritt mit durchgehendem Fluss'],
+ ['Zykluszeit je Schritt',all(s=>has(s.ct)),'Selbst gemessen, in Sekunden pro Stück'],
+ ['Rüstzeit je Schritt',all(s=>has(s.co)),'0 eintragen, wenn nicht gerüstet wird'],
+ ['Verfügbarkeit je Schritt',all(s=>has(s.avail)),'Anteil der Zeit, in der der Schritt produzieren kann'],
+ ['Mitarbeiter je Schritt',all(s=>has(s.ops)),''],
+ ['Losgröße je Schritt',all(s=>has(s.lot)),''],
+ ['Ausschuss/Nacharbeit je Schritt',all(s=>has(s.scrap)),'in %, 0 wenn keiner'],
+ ['Bestand vor jedem Schritt',all(s=>has(s.inv)),'Gezählt, in Stück'],
+ ['Fertigwarenbestand',has(v.fg),'Bestand vor Versand / beim Kunden'],
+ ['Produktionsplanung',t(v.info.planning),'Wie wird geplant? (z. B. SAP, Excel, Wochenplan)'],
+ ['Kundenbestellung & Lieferantenabruf',t(v.info.custOrder)&&t(v.info.suppOrder),'Art und Rhythmus des Informationsflusses'],
+ ['Steuerung / Schrittmacher',t(v.info.control),'Wo wird der Fluss angestoßen? (z. B. Endmontage)']];
+}
+function vcomp(v){const c=vchecks(v);return Math.round(c.filter(x=>x[1]).length/c.length*100)}
+function liveBar(v){const c=vcalc(v);return `<div class="live"><div><span>Takt</span><b>${fmt(c.takt,1)} s</b></div><div><span>DLZ</span><b>${fmt(c.invDays,1)} AT</b></div><div><span>Flussgrad</span><b>${fmt(c.flow,2)} %</b></div><div><span>Vollständig</span><b>${vcomp(v)} %</b></div></div>`}
+function vsmV(p){
+ const v=p.vsm[V.vv],c=vcalc(v);
+ V.live=()=>{const e=$('#live');if(e)e.innerHTML=liveBar(P().vsm[V.vv])};
+ const seg=`<div class="seg">${[['ist','Ist-Zustand'],['soll','Soll-Zustand']].map(([k,l])=>`<button class="${V.vv===k?'on':''}" onclick="V.vv='${k}';render()">${l}</button>`).join('')}</div>`;
+ const tabs=`<div class="tabs">${[['daten','Daten'],['karte','Karte'],['kpi','Kennzahlen'],['check','Checkliste']].map(([k,l])=>`<button class="${V.vt===k?'on':''}" onclick="V.vt='${k}';render()">${l}</button>`).join('')}</div>`;
+ const body=V.vt==='daten'?vsmData(v):V.vt==='karte'?vsmMap(v,c):V.vt==='kpi'?vsmKpi(p):vsmCheck(v);
+ return intro('vsm')+seg+tabs+`<div id="live">${liveBar(v)}</div>`+body+notesBox(p,'vsm');
+}
+function vsmData(v){
+ const pr=`vsm.${V.vv}`,c=v.customer;
+ const steps=v.steps.map((s,i)=>{const q=`${pr}.steps.${i}`;return `<div class="card step"><div class="row"><h3>${i+1}. ${esc(s.name||'Prozessschritt')}</h3><span><button class="ib" onclick="mvStep(${i},-1)">↑</button><button class="ib" onclick="mvStep(${i},1)">↓</button><button class="ib" onclick="delStep(${i})">✕</button></span></div>
+ <div class="grid2" style="margin-top:8px">${fld('Bezeichnung',q+'.name',s.name,{cls:'full',ph:'z. B. Vormontage'})}
+ ${fld('Bestand davor',q+'.inv',s.inv,{num:1,unit:'Stk'})}<label class="f"><span>Steuerung davor</span><select onchange="upd('${q}.flow',this.value)">${opt('push','Push',s.flow)}${opt('fifo','FIFO',s.flow)}${opt('sm','Supermarkt/Kanban',s.flow)}</select></label>
+ ${fld('Zykluszeit',q+'.ct',s.ct,{num:1,unit:'s'})}${fld('Rüstzeit',q+'.co',s.co,{num:1,unit:'min'})}
+ ${fld('Verfügbarkeit',q+'.avail',s.avail,{num:1,unit:'%'})}${fld('Mitarbeiter',q+'.ops',s.ops,{num:1})}
+ ${fld('Parallele Plätze',q+'.par',s.par,{num:1})}${fld('Losgröße',q+'.lot',s.lot,{num:1,unit:'Stk'})}
+ ${fld('Ausschuss/Nacharbeit',q+'.scrap',s.scrap,{num:1,unit:'%'})}</div></div>`}).join('');
+ return `${V.vv==='soll'?`<div class="card row"><span class="sm">Soll-Zustand aus dem Ist kopieren und dann verbessern.</span><button class="btn sm" onclick="copyIst()">Aus Ist übernehmen</button></div>`:''}
+ <h2>Kunde & Kundentakt</h2><div class="card grid2">${fld('Kunde',pr+'.customer.name',c.name,{cls:'full',ph:'z. B. Versand / OEM'})}${fld('Bedarf pro Tag',pr+'.customer.demand',c.demand,{num:1,unit:'Stk'})}${fld('Schichten pro Tag',pr+'.customer.shifts',c.shifts,{num:1})}${fld('Schichtdauer',pr+'.customer.shiftMin',c.shiftMin,{num:1,unit:'min'})}${fld('Pausen je Schicht',pr+'.customer.breakMin',c.breakMin,{num:1,unit:'min'})}${fld('Lieferfrequenz an Kunde',pr+'.customer.delivery',c.delivery,{cls:'full',ph:'z. B. 1× täglich'})}</div>
+ <h2>Lieferant</h2><div class="card grid2">${fld('Lieferant',pr+'.supplier.name',v.supplier.name,{ph:'z. B. Wareneingang'})}${fld('Anlieferfrequenz',pr+'.supplier.delivery',v.supplier.delivery,{ph:'z. B. 2× pro Woche'})}</div>
+ <h2>Informationsfluss</h2><div class="card grid2">${fld('Produktionsplanung',pr+'.info.planning',v.info.planning,{cls:'full',ph:'z. B. SAP, Wochenplan'})}${fld('Kundenbestellung',pr+'.info.custOrder',v.info.custOrder,{ph:'z. B. EDI wöchentlich'})}${fld('Lieferantenabruf',pr+'.info.suppOrder',v.info.suppOrder,{ph:'z. B. Abruf monatlich'})}${fld('Steuerung / Schrittmacher',pr+'.info.control',v.info.control,{cls:'full',ph:'z. B. Plan an jeden Schritt (Push)'})}</div>
+ <h2>Prozessschritte</h2>${steps||'<div class="empty">Noch keine Prozessschritte.</div>'}<button class="btn pri wide" onclick="addStep()">+ Prozessschritt</button>
+ <h2>Fertigwarenlager</h2><div class="card">${fld('Bestand Fertigware',pr+'.fg',v.fg,{num:1,unit:'Stk'})}</div>`;
+}
+function addStep(){P().vsm[V.vv].steps.push(newStep());save();render()}
+function delStep(i){if(!confirm('Prozessschritt löschen?'))return;P().vsm[V.vv].steps.splice(i,1);save();render()}
+function mvStep(i,d){const a=P().vsm[V.vv].steps,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];save();render()}
+function copyIst(){const p=P();const has_=p.vsm.soll.steps.length||p.vsm.soll.customer.demand;if(has_&&!confirm('Soll-Daten durch eine Kopie des Ist ersetzen?'))return;p.vsm.soll=JSON.parse(JSON.stringify(p.vsm.ist));p.vsm.soll.steps.forEach(s=>s.id=uid());save();render();toast('Ist übernommen')}
+
+function factory(x,y,name,sub){return `<path class="fac" d="M${x} ${y+60}V${y+22}l24-14v14l24-14v14l24-14v14h38v46z"/><text x="${x+55}" y="${y+42}" text-anchor="middle" class="b">${esc(trunc(name,16))}</text>${sub?`<text x="${x+55}" y="${y+55}" text-anchor="middle" class="sm">${esc(sub)}</text>`:''}`}
+function tri(x,y,inv,days){return `<polygon class="tri" points="${x},${y-17} ${x-15},${y+9} ${x+15},${y+9}"/><text x="${x}" y="${y+5}" text-anchor="middle" class="b">I</text><text x="${x}" y="${y+23}" text-anchor="middle" class="sm">${has(inv)?fmt(num(inv),0)+' Stk':'? Stk'}</text><text x="${x}" y="${y+35}" text-anchor="middle" class="sm">${fmt(days,1)} AT</text>`}
+function vsmMap(v,c){
+ const n=v.steps.length;if(!n)return '<div class="empty">Lege zuerst unter „Daten“ Prozessschritte an.</div>';
+ const BW=128,G=66,X0=120,W=Math.max(660,X0+n*(BW+G)+G+150),H=410,px=i=>X0+G+i*(BW+G),MY=190;
+ let s=`<defs>${ARROW}</defs>`;
+ s+=factory(10,16,v.supplier.name||'Lieferant',v.supplier.delivery?'':'');
+ s+=factory(W-130,16,v.customer.name||'Kunde',has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':'');
+ const ppx=W/2-85;
+ s+=`<rect x="${ppx}" y="18" width="170" height="54" rx="4" class="bx"/><text x="${W/2}" y="40" text-anchor="middle" class="b">Produktionsplanung</text><text x="${W/2}" y="57" text-anchor="middle">${esc(trunc(v.info.planning||'–',26))}</text>`;
+ s+=`<path d="M${W-130} 44H${ppx+172}" class="info" marker-end="url(#ah)"/><text x="${(W-130+ppx+170)/2}" y="37" text-anchor="middle" class="sm">${esc(trunc(v.info.custOrder,24))}</text>`;
+ s+=`<path d="M${ppx} 44H122" class="info" marker-end="url(#ah)"/><text x="${(ppx+120)/2}" y="37" text-anchor="middle" class="sm">${esc(trunc(v.info.suppOrder,24))}</text>`;
+ v.steps.forEach((st,i)=>{if(i===0||st.flow==='push')s+=`<path d="M${W/2} 72L${px(i)+BW/2} 162" class="info" marker-end="url(#ah)"/>`});
+ s+=`<path d="M65 76V${MY}H${px(0)-G/2-17}" class="mat" marker-end="url(#ah)"/><text x="72" y="104" class="sm">🚚 ${esc(trunc(v.supplier.delivery,14))}</text>`;
+ v.steps.forEach((st,i)=>{
+  const x=px(i),cs=c.steps[i],tx=x-G/2,lab={push:'PUSH ⇢',fifo:'FIFO',sm:'⟲ Supermarkt'}[st.flow]||'';
+  s+=tri(tx,MY,st.inv,cs.days);
+  if(i>0)s+=`<path d="M${px(i-1)+BW} ${MY}H${tx-17}" class="mat" marker-end="url(#ah)"/>`;
+  s+=`<path d="M${tx+16} ${MY}H${x-2}" class="mat" marker-end="url(#ah)"/>`;
+  if(i>0)s+=`<text x="${tx}" y="${MY-26}" text-anchor="middle" class="flow">${lab}</text>`;
+  s+=`<rect x="${x}" y="163" width="${BW}" height="36" rx="3" class="bx${cs.over?' bad':''}"/><text x="${x+BW/2}" y="185" text-anchor="middle" class="b">${esc(trunc(st.name||'Schritt '+(i+1),18))}</text>`;
+  s+=`<rect x="${x}" y="199" width="${BW}" height="100" class="db"/>`;
+  const L=[['ZZ',has(st.ct)?fmt(num(st.ct),1)+' s':'–'],['ZZ eff.',isFinite(cs.eff)?fmt(cs.eff,1)+' s':'–'],['RZ',has(st.co)?fmt(num(st.co),0)+' min':'–'],['Verfügb.',has(st.avail)?fmt(num(st.avail),0)+' %':'–'],['MA / Plätze',(has(st.ops)?fmt(num(st.ops),1):'–')+' / '+(st.par||1)],['Los',has(st.lot)?fmt(num(st.lot),0):'–'],['Ausschuss',has(st.scrap)?fmt(num(st.scrap),1)+' %':'–']];
+  L.forEach((r,j)=>{s+=`<text x="${x+6}" y="${214+j*12.5}" class="sm">${r[0]}</text><text x="${x+BW-6}" y="${214+j*12.5}" text-anchor="end">${r[1]}</text>`});
+ });
+ const lx=px(n-1)+BW,fx=lx+G/2;
+ s+=`<path d="M${lx} ${MY}H${fx-17}" class="mat" marker-end="url(#ah)"/>`+tri(fx,MY,v.fg,c.fgDays);
+ s+=`<path d="M${fx+16} ${MY}H${W-75}V78" class="mat" marker-end="url(#ah)"/><text x="${W-70}" y="${MY-30}" class="sm">🚚 ${esc(trunc(v.customer.delivery,14))}</text>`;
+ const ty=335;let d=`M${px(0)-G} ${ty}`,tl='';
+ v.steps.forEach((st,i)=>{const x=px(i),cs=c.steps[i];d+=`H${x}V${ty+26}H${x+BW}V${ty}`;tl+=`<text x="${x-G/2}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(cs.days,1)} AT</text><text x="${x+BW/2}" y="${ty+40}" text-anchor="middle" class="sm">${has(st.ct)?fmt(num(st.ct),1)+' s':'– s'}</text>`});
+ d+=`H${lx+G}`;tl+=`<text x="${fx}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(c.fgDays,1)} AT</text>`;
+ s+=`<path d="${d}" class="tl"/>${tl}`;
+ const sx=lx+G+10;
+ s+=`<rect x="${sx}" y="${ty-22}" width="128" height="72" rx="6" class="sum"/><text x="${sx+8}" y="${ty-6}" class="sm">Durchlaufzeit</text><text x="${sx+120}" y="${ty-6}" text-anchor="end" class="b">${fmt(c.invDays,1)} AT</text><text x="${sx+8}" y="${ty+12}" class="sm">Bearbeitungszeit</text><text x="${sx+120}" y="${ty+12}" text-anchor="end" class="b">${fmt(c.bz,0)} s</text><text x="${sx+8}" y="${ty+30}" class="sm">Flussgrad</text><text x="${sx+120}" y="${ty+30}" text-anchor="end" class="b">${fmt(c.flow,2)} %</text>`;
+ return `<div class="card scroll"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="vsm">${s}</svg></div><p class="mut sm">Seitlich wischen · Rot umrandet = effektive Zykluszeit über Kundentakt · AT = Arbeitstage Reichweite.</p>`;
+}
+function taktChart(c){
+ const st=c.steps.map((s,i)=>({...s,i})).filter(s=>isFinite(s.eff));if(!st.length)return '<div class="empty sm">Zykluszeiten eintragen für das Taktabgleich-Diagramm.</div>';
+ const W=360,H=215,L=30,B=182,T=22,mx=Math.max(isFinite(c.takt)?c.takt:0,...st.map(s=>s.eff))*1.15||1,bw=(W-L-10)/st.length,y=v=>B-(v/mx)*(B-T);
+ let s='';st.forEach((x,k)=>{const X=L+k*bw+bw*.2,w=bw*.6;s+=`<rect x="${X}" y="${y(x.eff)}" width="${w}" height="${Math.max(0,B-y(x.eff))}" rx="3" class="${x.over?'bbad':'bok'}"/><text x="${X+w/2}" y="${y(x.eff)-4}" text-anchor="middle" class="sm">${fmt(x.eff,0)}</text><text x="${X+w/2}" y="${B+14}" text-anchor="middle" class="sm">${esc(trunc(x.name||'#'+(x.i+1),9))}</text>`});
+ s+=`<line x1="${L}" x2="${L}" y1="${T-8}" y2="${B}" class="ax"/><line x1="${L}" x2="${W-6}" y1="${B}" y2="${B}" class="ax"/>`;
+ if(isFinite(c.takt))s+=`<line x1="${L}" x2="${W-6}" y1="${y(c.takt)}" y2="${y(c.takt)}" class="takt"/><text x="${W-6}" y="${y(c.takt)-5}" text-anchor="end" class="tk">Takt ${fmt(c.takt,1)} s</text>`;
+ return `<svg viewBox="0 0 ${W} ${H}" class="chart" style="width:100%">${s}</svg>`;
+}
+function vsmKpi(p){
+ const v=p.vsm[V.vv],c=vcalc(v),ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=(l,val,u,h)=>`<div class="kpi"><span>${l}</span><b>${val}<small> ${u}</small></b>${h?`<i>${h}</i>`:''}</div>`;
+ const res=`<h2>Ergebniskennzahlen · ${V.vv==='ist'?'Ist':'Soll'}</h2><div class="kpis">${k('Kundentakt',fmt(c.takt,1),'s','verfügbare Zeit ÷ Bedarf')}${k('Durchlaufzeit',fmt(c.invDays,1),'AT','Summe der Reichweiten')}${k('Bearbeitungszeit',fmt(c.bz,0),'s','Summe der Zykluszeiten')}${k('Flussgrad',fmt(c.flow,2),'%','Bearbeitungszeit ÷ DLZ')}${k('Bestand gesamt',fmt(c.invPcs,0),'Stk','')}${k('Mitarbeiter',fmt(c.ops,1),'',`theoretisch nötig: ${fmt(c.opsTheo,1)}`)}${k('Engpass',c.bottleneck?esc(trunc(c.bottleneck.name||'Schritt',14)):'–','',c.bottleneck?fmt(c.bottleneck.eff,1)+' s eff. ZZ':'')}${k('Verfügbare Zeit',fmt(c.avail/60,0),'min/Tag','')}</div>`;
+ const tbl=c.steps.length?`<div class="card"><table><tr><th>Schritt</th><th>ZZ eff.</th><th>Auslastung</th><th>Reichweite</th></tr>${c.steps.map((s,i)=>`<tr><td>${esc(trunc(s.name||'Schritt '+(i+1),18))}</td><td class="${s.over?'badc':''}">${fmt(s.eff,1)} s</td><td class="${s.util>100?'badc':''}">${fmt(s.util,0)} %</td><td>${fmt(s.days,1)} AT</td></tr>`).join('')}</table></div>`:'';
+ const rows=[['Kundentakt (s)',ci.takt,cs.takt,0,1],['Durchlaufzeit (AT)',ci.invDays,cs.invDays,-1,1],['Bearbeitungszeit (s)',ci.bz,cs.bz,-1,0],['Flussgrad (%)',ci.flow,cs.flow,1,2],['Bestand (Stk)',ci.invPcs,cs.invPcs,-1,0],['Mitarbeiter',ci.ops,cs.ops,-1,1],['Engpass-ZZ (s)',ci.bottleneck?.eff,cs.bottleneck?.eff,-1,1]];
+ const cmp=`<h2>Vergleich Ist ↔ Soll</h2><div class="card"><table><tr><th>Kennzahl</th><th>Ist</th><th>Soll</th><th>Δ</th></tr>${rows.map(([l,a,b,dir,dg])=>{const dd=isFinite(a)&&isFinite(b)&&a?(b-a)/a*100:NaN,cls=!isFinite(dd)||dir===0||Math.abs(dd)<.05?'':(dd*dir>0?'good':'badc');return `<tr><td>${l}</td><td>${fmt(a,dg)}</td><td>${fmt(b,dg)}</td><td class="${cls}">${isFinite(dd)?(dd>0?'+':'')+fmt(dd,0)+' %':'–'}</td></tr>`}).join('')}</table></div>`;
+ const done=p.actions.filter(a=>a.status==='erledigt').length,ic=vcomp(p.vsm.ist),sc=vcomp(p.vsm.soll);
+ const dlzRed=isFinite(ci.invDays)&&ci.invDays>0&&isFinite(cs.invDays)?(1-cs.invDays/ci.invDays)*100:NaN;
+ const prog=`<h2>Fortschrittskennzahlen</h2><div class="card">${progRow('Ist-Aufnahme vollständig',ic+' %',ic)}${progRow('Soll-Zustand definiert',sc+' %',sc)}${progRow('Maßnahmen umgesetzt',`${done} / ${p.actions.length}`,pct(done,p.actions.length))}${isFinite(dlzRed)?`<p class="sm" style="margin:8px 0 0">Ziel-Reduktion Durchlaufzeit: <b class="${dlzRed>0?'good':'badc'}">${fmt(dlzRed,0)} %</b></p>`:''}</div>`;
+ const hints=[];c.steps.forEach((s,i)=>{if(s.over)hints.push(`<b>${esc(s.name||'Schritt '+(i+1))}</b> liegt mit ${fmt(s.eff,1)} s über dem Takt – Arbeitsinhalt verteilen, Verschwendung abbauen oder parallelisieren.`)});
+ if(isFinite(c.flow)&&c.flow<5)hints.push('Flussgrad unter 5 %: Das Produkt liegt die meiste Zeit im Bestand. Bestände senken, FIFO-Bahnen oder Supermärkte einführen.');
+ c.steps.forEach((s,i)=>{if(isFinite(s.days)&&s.days>1)hints.push(`Bestand vor <b>${esc(s.name||'Schritt '+(i+1))}</b> reicht ${fmt(s.days,1)} Arbeitstage.`)});
+ return res+`<h2>Taktabgleich</h2><div class="card">${taktChart(c)}</div>`+tbl+(hints.length?`<h2>Ansatzpunkte</h2><div class="card sm">${hints.map(h=>`<p style="margin:4px 0">• ${h}</p>`).join('')}</div>`:'')+cmp+prog;
+}
+function vsmCheck(v){
+ const c=vchecks(v),okN=c.filter(x=>x[1]).length;
+ return `<div class="card">${progRow('Vollständigkeit',`${okN} / ${c.length}`,pct(okN,c.length))}</div><div class="card">${c.map(([l,ok,h])=>`<div class="chk ${ok?'ok':''}"><b>${ok?'✓':''}</b><div><div>${l}</div>${h?`<div class="mut sm">${h}</div>`:''}</div></div>`).join('')}</div>
+ <h2>Was gehört in einen vollständigen Wertstrom?</h2><div class="card sm">
+ <p><b>1. Kundendaten</b> – Bedarf, Schichtmodell, Lieferrhythmus → Kundentakt.</p>
+ <p><b>2. Prozesskästen</b> – ein Kasten pro Schritt, an dem der Fluss unterbrochen wird.</p>
+ <p><b>3. Datenkästen</b> – Zykluszeit, Rüstzeit, Verfügbarkeit, Mitarbeiter, Losgröße, Ausschuss.</p>
+ <p><b>4. Bestände</b> – vor jedem Schritt gezählt, als Reichweite in Tagen.</p>
+ <p><b>5. Materialfluss</b> – Lieferant → Prozesse → Kunde, mit Steuerungsart (Push, FIFO, Supermarkt).</p>
+ <p><b>6. Informationsfluss</b> – Kundenbestellung, Planung, Lieferantenabruf, Schrittmacher.</p>
+ <p><b>7. Zeitlinie</b> – Durchlaufzeit oben, Bearbeitungszeit unten → Flussgrad.</p></div>`;
+}
+
+/* ===== Verschwendung ===== */
+function mudaV(p){
+ const obs=p.muda.obs,tot={};MUDA.forEach(m=>tot[m[0]]={min:0,n:0});
+ obs.forEach(o=>{const t=tot[o.type];if(!t)return;t.n++;t.min+=(num(o.dur)||0)*(num(o.freq)||0)/60});
+ const sum=Object.values(tot).reduce((a,t)=>a+t.min,0),mx=Math.max(1,...Object.values(tot).map(t=>t.min));
+ const eva=MUDA.map(m=>`<div class="prog"><div class="row"><span>${m[1]} <span class="mut sm">(${tot[m[0]].n})</span></span><b>${fmt(tot[m[0]].min,1)} min</b></div>${bar(tot[m[0]].min/mx*100,m[3])}</div>`).join('');
+ return intro('muda')+`<details class="card"><summary>Die 8 Verschwendungsarten</summary>${MUDA.map(m=>`<p class="sm" style="margin:6px 0"><span class="chip c" style="background:${m[3]}">${m[1]}</span> ${m[2]}</p>`).join('')}</details>
+ <h2>Beobachtung erfassen</h2><div class="card grid2"><label class="f full"><span>Art</span><select id="mt">${MUDA.map(m=>opt(m[0],m[1],'')).join('')}</select></label><label class="f"><span>Station</span><input id="ms" placeholder="z. B. Endmontage 3"></label><label class="f"><span>Dauer je Vorkommen <i>(s)</i></span><input id="mdur" inputmode="decimal"></label><label class="f full"><span>Beschreibung</span><input id="md" placeholder="Was genau passiert?"></label><label class="f"><span>Häufigkeit je Schicht</span><input id="mf" inputmode="decimal"></label><div style="display:flex;align-items:flex-end"><button class="btn pri" style="width:100%" onclick="addObs()">+ Erfassen</button></div></div>
+ <h2>Auswertung · ${fmt(sum,1)} min Verschwendung je Schicht</h2><div class="card">${eva}</div>
+ <h2>Beobachtungen (${obs.length})</h2>${obs.slice().reverse().map(o=>{const m=MUDA.find(x=>x[0]===o.type)||MUDA[0],mins=(num(o.dur)||0)*(num(o.freq)||0)/60;return `<div class="card"><div class="row"><span><span class="chip c" style="background:${m[3]}">${m[1]}</span> <span class="mut sm">${esc(o.station)}</span></span><span class="sm"><b>${fmt(mins,1)} min</b>/Schicht</span></div><div style="margin:6px 0">${esc(o.desc)||'<span class="mut">ohne Beschreibung</span>'}</div><div class="row"><span class="mut sm">${has(o.dur)?fmt(num(o.dur),0)+' s':'?'} × ${has(o.freq)?fmt(num(o.freq),0):'?'}</span><span><button class="btn sm" onclick="obsAct('${o.id}')">→ Maßnahme</button><button class="ib" onclick="delObs('${o.id}')">✕</button></span></div></div>`}).join('')||'<div class="empty">Noch keine Beobachtungen.</div>'}`+notesBox(p,'muda');
+}
+function addObs(){const g=id=>document.getElementById(id).value.trim();if(!g('md')&&!g('mdur')){toast('Beschreibung oder Dauer eintragen');return}P().muda.obs.push({id:uid(),type:g('mt'),station:g('ms'),desc:g('md'),dur:g('mdur'),freq:g('mf'),t:Date.now()});save();render();toast('Erfasst')}
+function delObs(id){if(!confirm('Beobachtung löschen?'))return;const p=P();p.muda.obs=p.muda.obs.filter(o=>o.id!==id);save();render()}
+function obsAct(id){const o=P().muda.obs.find(x=>x.id===id),m=MUDA.find(x=>x[0]===o.type);addAction(`${m?m[1]+': ':''}${o.desc||'Verschwendung abstellen'}${o.station?' ('+o.station+')':''}`,'Verschwendung')}
+
+/* ===== Zeitaufnahme ===== */
+setInterval(()=>{const e=document.getElementById('clock');if(e&&V.tRun){e.textContent=fmtT((Date.now()-V.tLast)/1000);const t=document.getElementById('ctot');if(t)t.textContent='Gesamt '+fmtT((Date.now()-V.tRun)/1000)}},100);
+function tStart(){V.tRun=V.tLast=Date.now();render()}
+function tStop(){if(!confirm('Aufnahme beenden? Der laufende Abschnitt wird verworfen.'))return;V.tRun=null;render()}
+function lap(cat){const now=Date.now(),l=document.getElementById('ll');P().muda.laps.push({id:uid(),cat,label:l?l.value.trim():'',station:V.lst,sec:(now-V.tLast)/1000,t:now});V.tLast=now;save();render()}
+function delLap(id){const p=P();p.muda.laps=p.muda.laps.filter(l=>l.id!==id);save();render()}
+function clearLaps(){if(!confirm('Alle Zeitabschnitte löschen?'))return;P().muda.laps=[];save();render()}
+function timeV(p){
+ const laps=p.muda.laps,tot={ws:0,nws:0,v:0};laps.forEach(l=>tot[l.cat]+=l.sec);const all=tot.ws+tot.nws+tot.v;
+ const byS={};laps.forEach(l=>{const k=l.station||'ohne Station';byS[k]=byS[k]||{ws:0,nws:0,v:0};byS[k][l.cat]+=l.sec});
+ const stack=t=>{const a=t.ws+t.nws+t.v;return `<div class="stack">${Object.keys(CAT).map(k=>t[k]?`<i style="width:${pct(t[k],a)}%;background:${CAT[k][1]}"></i>`:'').join('')}</div>`};
+ return intro('time')+`<div class="card"><label class="f"><span>Station</span><input value="${esc(V.lst)}" placeholder="z. B. Vormontage 1" oninput="V.lst=this.value"></label>
+ <div class="clock" id="clock">${V.tRun?fmtT((Date.now()-V.tLast)/1000):'00:00.0'}</div><div class="mut sm" style="text-align:center" id="ctot">${V.tRun?'':'Stoppuhr bereit'}</div>
+ ${V.tRun?`<input id="ll" style="margin-top:10px" placeholder="Abschnitt (optional), z. B. Gehäuse holen"><div class="cats">${Object.entries(CAT).map(([k,c])=>`<button style="background:${c[1]}" onclick="lap('${k}')">${c[0]}</button>`).join('')}</div><button class="btn wide" onclick="tStop()">■ Stopp</button>`:`<button class="btn pri wide" onclick="tStart()">▶ Start</button>`}</div>
+ <h2>Auswertung</h2><div class="card">${all?`${stack(tot)}${Object.entries(CAT).map(([k,c])=>`<div class="row sm"><span><span class="chip c" style="background:${c[1]}">${c[0]}</span></span><b>${fmtT(tot[k])} · ${fmt(pct(tot[k],all),0)} %</b></div>`).join('')}`:'<span class="mut sm">Noch keine Abschnitte aufgenommen.</span>'}</div>
+ ${Object.keys(byS).length>1?`<h2>Je Station</h2><div class="card">${Object.entries(byS).map(([k,t])=>`<div class="sm"><b>${esc(k)}</b> · WS ${fmt(pct(t.ws,t.ws+t.nws+t.v),0)} %</div>${stack(t)}`).join('')}</div>`:''}
+ <h2>Abschnitte (${laps.length})</h2>${laps.length?`<div class="card"><table><tr><th>Abschnitt</th><th>Kategorie</th><th>Zeit</th><th></th></tr>${laps.slice().reverse().map(l=>`<tr><td>${esc(l.label||'–')}<div class="mut sm">${esc(l.station)}</div></td><td><span class="chip c" style="background:${CAT[l.cat][1]}">${CAT[l.cat][0]}</span></td><td>${fmt(l.sec,1)} s</td><td><button class="ib" onclick="delLap('${l.id}')">✕</button></td></tr>`).join('')}</table><button class="btn sm del" style="margin-top:8px" onclick="clearLaps()">Alle löschen</button></div>`:''}`+notesBox(p,'time');
+}
+
+/* ===== Spaghetti ===== */
+const spagDist=sp=>{let d=0;for(let i=1;i<sp.pts.length;i++)d+=Math.hypot(sp.pts[i].x-sp.pts[i-1].x,sp.pts[i].y-sp.pts[i-1].y);return d/20*(num(sp.scale)||1)};
+function spagTap(e){const svg=e.currentTarget,r=svg.getBoundingClientRect(),x=Math.round((e.clientX-r.left)/r.width*400/10)*10,y=Math.round((e.clientY-r.top)/r.height*280/10)*10,sp=P().spag;
+ if(V.sm==='station'){const n=prompt('Name der Station (z. B. Regal, Arbeitsplatz 1)');if(!n)return;sp.st.push({x,y,name:n.trim()})}else sp.pts.push({x,y});save();render()}
+function spagUndo(){const sp=P().spag;if(V.sm==='station')sp.st.pop();else sp.pts.pop();save();render()}
+function spagClear(){if(!confirm('Wege und Stationen löschen?'))return;const sp=P().spag;sp.pts=[];sp.st=[];save();render()}
+function spagLive(){const sp=P().spag,d=spagDist(sp),cy=num(sp.cycles),e=$('#splive');if(e)e.innerHTML=`<div class="kpi"><span>Weg je Zyklus</span><b>${fmt(d,1)}<small> m</small></b></div><div class="kpi"><span>Weg je Schicht</span><b>${fmt(d*cy/1000,2)}<small> km</small></b></div><div class="kpi"><span>Gehzeit je Schicht</span><b>${fmt(d*cy/60,0)}<small> min</small></b><i>bei ca. 1 m/s</i></div>`}
+function spagV(p){
+ const sp=p.spag;V.live=spagLive;let g='';for(let x=0;x<=400;x+=20)g+=`<line x1="${x}" y1="0" x2="${x}" y2="280" class="gl"/>`;for(let y=0;y<=280;y+=20)g+=`<line x1="0" y1="${y}" x2="400" y2="${y}" class="gl"/>`;
+ const st=sp.st.map(s=>`<rect x="${s.x-22}" y="${s.y-11}" width="44" height="22" rx="4" class="sta"/><text x="${s.x}" y="${s.y+3.5}" text-anchor="middle" style="font-size:8.5px;font-weight:700">${esc(trunc(s.name,10))}</text>`).join('');
+ const pts=sp.pts.map(q=>q.x+','+q.y).join(' ');
+ const dots=sp.pts.map((q,i)=>`<circle cx="${q.x}" cy="${q.y}" r="${i===0||i===sp.pts.length-1?5:2.5}" fill="${i===0?'var(--ok)':i===sp.pts.length-1?'var(--w)':'var(--w)'}"/>`).join('');
+ setTimeout(spagLive);
+ return intro('spag')+`<div class="seg">${[['weg','✏️ Weg'],['station','🏷️ Station']].map(([k,l])=>`<button class="${V.sm===k?'on':''}" onclick="V.sm='${k}';render()">${l}</button>`).join('')}</div>
+ <div class="card" style="padding:6px"><svg viewBox="0 0 400 280" class="spag" onclick="spagTap(event)">${g}${st}${pts?`<polyline points="${pts}" class="path"/>`:''}${dots}</svg></div>
+ <div class="row gap"><button class="btn sm" onclick="spagUndo()">↶ Rückgängig</button><button class="btn sm del" onclick="spagClear()">Alles löschen</button><span class="mut sm">${V.sm==='weg'?'Punkte der Reihe nach antippen':'Tippen, um eine Station zu setzen'}</span></div>
+ <div class="card grid2" style="margin-top:10px">${fld('Maßstab: 1 Kästchen =','spag.scale',sp.scale,{num:1,unit:'m'})}${fld('Zyklen je Schicht','spag.cycles',sp.cycles,{num:1})}</div>
+ <div class="kpis" id="splive"></div>`+notesBox(p,'spag');
+}
+
+/* ===== Greifraum ===== */
+function addGreif(){const part=$('#gp').value.trim();if(!part){$('#gp').focus();return}P().greif.push({id:uid(),part,zone:$('#gz').value,grips:$('#gg').value.trim()||'1'});save();render()}
+function delGreif(id){const p=P();p.greif=p.greif.filter(g=>g.id!==id);save();render()}
+function greifV(p){
+ const tot={A:0,B:0,C:0,D:0};p.greif.forEach(g=>tot[g.zone]+=num(g.grips)||0);const all=Object.values(tot).reduce((a,b)=>a+b,0);
+ const idx=all?(tot.A*1+tot.B*2+tot.C*3+tot.D*4)/all:NaN,good=pct(tot.A+tot.B,all);
+ const zsvg=`<svg viewBox="0 0 300 175" class="zone" style="width:100%;max-width:380px;display:block;margin:auto"><path d="M10 160A140 140 0 0 1 290 160Z" fill="#f59e0b" opacity=".35"/><path d="M50 160A100 100 0 0 1 250 160Z" fill="#84cc16" opacity=".45"/><path d="M90 160A60 60 0 0 1 210 160Z" fill="#16a34a" opacity=".55"/><rect x="120" y="160" width="60" height="14" rx="6" fill="var(--mut)"/><text x="150" y="132" text-anchor="middle">A</text><text x="150" y="80" text-anchor="middle">B</text><text x="150" y="38" text-anchor="middle">C</text><text x="290" y="172" text-anchor="end" style="font-size:9px">D = außerhalb</text></svg>`;
+ return intro('greif')+`<div class="card">${zsvg}<div class="mut sm" style="text-align:center">Draufsicht Arbeitsplatz – Mitarbeiter unten</div></div>
+ <div class="card"><input id="gp" placeholder="Teil / Werkzeug, z. B. Schraube M4"><div class="grid2" style="margin-top:8px"><select id="gz">${ZONES.map(z=>opt(z[0],z[0]+' – '+z[1],'A')).join('')}</select><input id="gg" inputmode="decimal" placeholder="Griffe je Zyklus"></div><button class="btn pri wide" onclick="addGreif()">+ Hinzufügen</button></div>
+ <h2>Auswertung</h2><div class="kpis"><div class="kpi"><span>Griffe je Zyklus</span><b>${fmt(all,0)}</b></div><div class="kpi"><span>Anteil Zone A+B</span><b class="${good<80&&all?'badc':''}">${fmt(good,0)}<small> %</small></b><i>Ziel ≥ 80 %</i></div><div class="kpi"><span>Greif-Index</span><b>${fmt(idx,2)}</b><i>1 = ideal, 4 = kritisch</i></div></div>
+ ${all?`<div class="card"><div class="stack">${ZONES.map(z=>tot[z[0]]?`<i style="width:${pct(tot[z[0]],all)}%;background:${z[3]}"></i>`:'').join('')}</div>${ZONES.map(z=>`<div class="row sm"><span><b>${z[0]}</b> ${z[1]} – <span class="mut">${z[2]}</span></span><b>${fmt(tot[z[0]],0)}</b></div>`).join('')}</div>`:''}
+ <h2>Teile (${p.greif.length})</h2>${p.greif.slice().sort((a,b)=>b.zone.localeCompare(a.zone)||num(b.grips)-num(a.grips)).map(g=>{const z=ZONES.find(x=>x[0]===g.zone);return `<div class="card row"><span><span class="chip c" style="background:${z[3]}">${z[0]}</span> <b>${esc(g.part)}</b> <span class="mut sm">${fmt(num(g.grips),0)}× je Zyklus</span></span><span>${g.zone>'B'?`<button class="btn sm" onclick="addAction('${esc(g.part).replace(/'/g,"\\'")} näher in den Greifraum bringen (aktuell Zone ${g.zone})','Greifraum')">→ Maßnahme</button>`:''}<button class="ib" onclick="delGreif('${g.id}')">✕</button></span></div>`}).join('')||'<div class="empty">Noch keine Teile erfasst.</div>'}`+notesBox(p,'greif');
+}
+
+/* ===== Ishikawa ===== */
+function wrap(t,n){const w=String(t).split(/\s+/),L=[];let c='';w.forEach(x=>{if((c+' '+x).trim().length>n){if(c)L.push(c);c=x}else c=(c+' '+x).trim()});if(c)L.push(c);return L}
+function fish(p){
+ const W=820,H=380,sy=190;let s=`<defs>${ARROW}</defs><path d="M20 ${sy}H650" class="spine" marker-end="url(#ah)"/>`;
+ const ln=wrap(p.ishi.problem||'Problem eintragen',22).slice(0,5);
+ s+=`<rect x="656" y="${sy-52}" width="156" height="104" rx="8" class="head"/>`+ln.map((l,i)=>`<text x="734" y="${sy-(ln.length-1)*7+i*14+4}" text-anchor="middle" class="b">${esc(l)}</text>`).join('');
+ const bx=[250,420,590];
+ M6.forEach((cat,ci)=>{const top=ci<3,x2=bx[ci%3],x1=x2-105,y1=top?42:338;
+  s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${sy}" class="bone"/><text x="${x1}" y="${top?y1-12:y1+22}" text-anchor="middle" class="cat">${cat}</text>`;
+  const cs=p.ishi.causes.filter(c=>c.cat===cat).slice(0,6);
+  cs.forEach((c,j)=>{const t=(j+1)/(cs.length+1)*.9,x=x1+(x2-x1)*t,y=y1+(sy-y1)*t;s+=`<line x1="${x-10}" y1="${y}" x2="${x}" y2="${y}" class="twig"/><text x="${x-13}" y="${y+3}" text-anchor="end" class="${c.main?'mainc':'cz'}">${c.main?'★ ':''}${esc(trunc(c.text,20))}</text>`});
+ });
+ return `<div class="card scroll"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="fish">${s}</svg></div>`;
+}
+function addCause(){const t=$('#it').value.trim();if(!t){$('#it').focus();return}P().ishi.causes.push({id:uid(),cat:$('#ic').value,text:t,main:false});save();render();setTimeout(()=>{const e=$('#it');if(e)e.focus()})}
+function togMain(id){const c=P().ishi.causes.find(x=>x.id===id);c.main=!c.main;save();render()}
+function delCause(id){const p=P();p.ishi.causes=p.ishi.causes.filter(c=>c.id!==id);save();render()}
+function causeAct(id){const c=P().ishi.causes.find(x=>x.id===id);addAction(`Ursache abstellen (${c.cat}): ${c.text}`,'Ishikawa')}
+function causeWhy(id){const p=P(),c=p.ishi.causes.find(x=>x.id===id);p.whys.push({id:uid(),problem:c.text,whys:['','','','',''],root:'',measure:''});save();openT('why');toast('5-Why angelegt')}
+function ishiV(p){
+ V.live=()=>{const e=$('#fishw');if(e)e.innerHTML=fish(P())};
+ const lastCat=V.icat||'Mensch';
+ return intro('ishi')+`<div class="card">${area('Problem (Kopf des Fisches)','ishi.problem',p.ishi.problem,'z. B. 4 % Nacharbeit an Gehäusemontage',2)}</div>
+ <div id="fishw">${fish(p)}</div><p class="mut sm" style="margin-top:-4px">Seitlich wischen · ★ = Hauptursache</p>
+ <div class="card"><div class="grid2"><select id="ic" onchange="V.icat=this.value">${M6.map(m=>opt(m,m,lastCat)).join('')}</select><input id="it" placeholder="Mögliche Ursache" onkeydown="if(event.key==='Enter')addCause()"></div><button class="btn pri wide" onclick="addCause()">+ Ursache</button></div>
+ ${M6.map(cat=>{const cs=p.ishi.causes.filter(c=>c.cat===cat);return cs.length?`<h2>${cat}</h2>${cs.map(c=>`<div class="card"><div class="row"><span style="${c.main?'font-weight:700;color:var(--bad)':''}">${esc(c.text)}</span><button class="ib" onclick="delCause('${c.id}')">✕</button></div><div class="row gap" style="margin-top:6px"><button class="btn sm" onclick="togMain('${c.id}')">${c.main?'★ Hauptursache':'☆ markieren'}</button><button class="btn sm" onclick="causeWhy('${c.id}')">→ 5-Why</button><button class="btn sm" onclick="causeAct('${c.id}')">→ Maßnahme</button></div></div>`).join('')}`:''}).join('')}`+notesBox(p,'ishi');
+}
+
+/* ===== 5-Why ===== */
+function addWhy(){P().whys.push({id:uid(),problem:'',whys:['','','','',''],root:'',measure:''});save();render()}
+function delWhy(i){if(!confirm('Analyse löschen?'))return;P().whys.splice(i,1);save();render()}
+function whyAct(i){const w=P().whys[i];addAction(w.measure||(w.root?'Grundursache abstellen: '+w.root:''),'5-Why')}
+function whyV(p){
+ return intro('why')+p.whys.map((w,i)=>`<div class="card"><div class="row"><b>Analyse ${i+1}</b><button class="ib" onclick="delWhy(${i})">✕</button></div><div style="margin-top:8px">${area('Problem',`whys.${i}.problem`,w.problem,'Was, wo, wann, wie viel?',2)}</div>
+ ${w.whys.map((x,j)=>`<div style="margin-top:8px;padding-left:${j*8}px">${fld(`${j+1}. Warum?`,`whys.${i}.whys.${j}`,x,{ph:j===0?'Weil …':'Und warum das?'})}</div>`).join('')}
+ <div style="margin-top:10px">${fld('🎯 Grundursache',`whys.${i}.root`,w.root)}</div><div style="margin-top:8px">${fld('Gegenmaßnahme',`whys.${i}.measure`,w.measure)}</div>
+ <button class="btn sm" style="margin-top:10px" onclick="whyAct(${i})">→ In Maßnahmenplan</button></div>`).join('')+`<button class="btn pri wide" onclick="addWhy()">+ Neue 5-Why-Analyse</button>`+notesBox(p,'why');
+}
+
+/* ===== 5S ===== */
+function s5calc(a){const per=FIVE_S.map((s,i)=>{let t=0,n=0;s[1].forEach((q,j)=>{const v=a.scores[i+'-'+j];if(v!=null){t+=v;n++}});return{p:t/(s[1].length*4)*100,n}});return{per,total:per.reduce((x,y)=>x+y.p,0)/per.length,answered:per.reduce((x,y)=>x+y.n,0)}}
+function newAudit(){const p=P(),a={id:uid(),date:today(),area:p.audits.length?p.audits[p.audits.length-1].area:'',scores:{}};p.audits.push(a);V.aid=a.id;save();render()}
+function setScore(k,n){const a=curAudit(P());a.scores[k]=a.scores[k]===n?null:n;save();render()}
+function delAudit(){if(!confirm('Audit löschen?'))return;const p=P();p.audits=p.audits.filter(a=>a.id!==V.aid);V.aid=null;save();render()}
+const curAudit=p=>p.audits.find(a=>a.id===V.aid)||p.audits[p.audits.length-1];
+function radar(vals){const cx=150,cy=128,R=92,n=5,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};let s='';
+ [.25,.5,.75,1].forEach(f=>{s+=`<polygon points="${[0,1,2,3,4].map(i=>pt(i,R*f).join(',')).join(' ')}" class="rg"/>`});
+ FIVE_S.forEach((x,i)=>{const[X,Y]=pt(i,R),[lx,ly]=pt(i,R+18);s+=`<line x1="${cx}" y1="${cy}" x2="${X}" y2="${Y}" class="rg"/><text x="${lx}" y="${ly+4}" text-anchor="middle">${x[0]} ${fmt(vals[i],0)}%</text>`});
+ s+=`<polygon points="${vals.map((v,i)=>pt(i,R*(v||0)/100).join(',')).join(' ')}" class="rv"/>`;return `<svg viewBox="0 0 300 250" class="radar" style="width:100%;max-width:400px;display:block;margin:auto">${s}</svg>`}
+function s5V(p){
+ if(!p.audits.length)return intro('s5')+`<div class="empty">Noch kein Audit.<br><br><button class="btn pri" onclick="newAudit()">+ Erstes Audit starten</button></div>`+notesBox(p,'s5');
+ const a=curAudit(p),i=p.audits.indexOf(a),c=s5calc(a);
+ return intro('s5')+`<div class="row gap" style="margin-bottom:10px;overflow-x:auto;flex-wrap:nowrap">${p.audits.map(x=>`<button class="btn sm" style="${x===a?'background:var(--pri);color:#fff;border-color:var(--pri)':''}" onclick="V.aid='${x.id}';render()">${new Date(x.date).toLocaleDateString('de-DE')} · ${fmt(s5calc(x).total,0)}%</button>`).join('')}<button class="btn sm pri" onclick="newAudit()">+ Neu</button></div>
+ <div class="card grid2">${fld('Bereich',`audits.${i}.area`,a.area,{ph:'z. B. Vormontage'})}<label class="f"><span>Datum</span><input type="date" value="${esc(a.date)}" onchange="upr('audits.${i}.date',this.value)"></label></div>
+ <div class="card">${radar(c.per.map(x=>x.p))}<div style="text-align:center;margin-top:4px"><b style="font-size:22px">${fmt(c.total,0)} %</b> <span class="mut sm">Gesamt · ${c.answered}/20 bewertet</span></div></div>
+ ${FIVE_S.map((s,si)=>`<h2>${si+1}. ${s[0]} · ${fmt(c.per[si].p,0)} %</h2><div class="card">${s[1].map((q,qi)=>{const k=si+'-'+qi,v=a.scores[k];return `<div class="q">${q}<div class="score">${[0,1,2,3,4].map(n=>`<button class="${v===n?'on':''}" onclick="setScore('${k}',${n})">${n}</button>`).join('')}<button style="flex:.8" onclick="addAction('5S ${s[0]}: ${q.replace(/'/g,"\\'")}','5S-Audit')">→ M</button></div></div>`}).join('')}</div>`).join('')}
+ ${p.audits.length>1?`<h2>Verlauf</h2><div class="card">${p.audits.map(x=>`<div class="prog"><div class="row sm"><span>${new Date(x.date).toLocaleDateString('de-DE')} ${esc(x.area)}</span><b>${fmt(s5calc(x).total,0)} %</b></div>${bar(s5calc(x).total)}</div>`).join('')}</div>`:''}
+ <button class="btn del sm" onclick="delAudit()">Dieses Audit löschen</button>`+notesBox(p,'s5');
+}
+
+const R={vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
+load();render();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
