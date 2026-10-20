@@ -67,6 +67,14 @@ label.f i{font-style:normal;opacity:.7}
 .pfoot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 14px 12px}
 .pcount{background:var(--pri);color:#fff;border-radius:999px;min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-weight:800;padding:0 10px}
 .xl{--bg:#f3f4f6;--card:#fff;--tx:#17202a;--mut:#6b7280;--bd:#e2e5ea;--pri:#0f6e56;--pri2:#e3f2ec;--inv:#f6c453;--bad:#c62828;--ok:#15803d;color:#17202a}
+.tl{position:relative;margin-left:14px;border-left:2px solid var(--bd)}
+.tli{position:relative;display:flex;gap:8px;align-items:flex-start;padding:4px 0 12px 22px}
+.tli>div{flex:1}
+.tld{position:absolute;left:-14px;top:2px;width:26px;height:26px;border-radius:50%;background:var(--card);border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:12px}
+.tli.plan .tld{border-style:dashed}.tli.late{color:var(--bad)}.tli.late .tld{border-color:var(--bad)}
+.tlnow{margin:2px 0 8px;font-size:12px;font-weight:700;color:var(--bad);display:flex;align-items:center;gap:8px}
+.tlnow:after{content:'';flex:1;height:2px;background:var(--bad);opacity:.6}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:4px}.leg i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -190,7 +198,7 @@ const P=()=>S.projects.find(p=>p.id===V.pid);
 
 const newVsm=()=>({customer:{name:'',demand:'',shiftMin:'',shifts:'',breakMin:'',delivery:''},supplier:{name:'',delivery:''},info:{planning:'',custOrder:'',suppOrder:'',control:''},fg:'',steps:[]});
 const newStep=()=>({id:uid(),name:'',ct:'',co:'',avail:'',ops:'',par:'1',lot:'',scrap:'',inv:'',flow:'push'});
-const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],talks:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
+const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],talks:[],problems:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
 function fix(p){const d=newProject(p.name);for(const k in d)if(p[k]==null)p[k]=d[k];if(!p.spag.st)p.spag.st=[];if(!p.muda.laps)p.muda.laps=[];}
 
 function upd(path,val){let o=P();const k=path.split('.');for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val;save();if(V.live)V.live()}
@@ -244,11 +252,15 @@ talk:{name:'Mitarbeitergespräche',icon:'💬',short:'Ideen, Ärgernisse und Bel
  guide:{why:'Die Mitarbeiter am Prozess kennen die Probleme am besten. In gezielten Gesprächen kommen Verbesserungsideen und Belastungen ans Licht, die in keiner Messung auftauchen. Entscheidend ist, dass jedes Anliegen verfolgt und dem Mitarbeiter zurückgemeldet wird – sonst sagt beim nächsten Mal niemand mehr etwas.',
  steps:['Gespräch am Arbeitsplatz führen und das Ziel erklären: Es geht um den Prozess, nicht um die Bewertung der Person.','Mit den Leitfragen ins Gespräch kommen (im Werkzeug aufklappbar) – zuhören, nicht rechtfertigen.','Pro Anliegen einen Eintrag anlegen: Art (Idee, Ärgernis/Belastung, Läuft gut), Thema, Station, Beschreibung und gern ein wörtliches Zitat.','Belastung bzw. Dringlichkeit von 1 bis 5 gemeinsam mit dem Mitarbeiter einschätzen.','Status antippen, um ihn weiterzuschalten: neu → in Prüfung → umgesetzt → abgelehnt. Umsetzbares direkt mit „→ Maßnahme“ übernehmen.','Dem Mitarbeiter Rückmeldung geben und abhaken – auch bei einer Ablehnung, dann mit Begründung.'],
  tip:'Namen nur mit Einverständnis notieren, im Zweifel „anonym“ wählen. Die Daten liegen nur auf deinem Gerät – beim Export und Weitergeben an Datenschutz und ggf. Betriebsrat denken.'}},
+prob:{name:'Probleme',icon:'🎯',short:'Jedes Problem mit eigener Akte: Maßnahmen anhängen und den Verlauf als Zeitstrahl verfolgen.',
+ guide:{why:'Im Problemspeicher bekommt jedes Problem eine eigene Akte. Du siehst, welche Maßnahmen dazu laufen, wer verantwortlich ist und wie sich die Lösung über die Zeit entwickelt hat. Der Zeitplan zeigt jede Maßnahme als Balken mit Termin, der Verlauf jede Änderung mit Datum.',
+ steps:['Problem anlegen – hier direkt oder per „→ Problem“ aus Verschwendung, Mitarbeitergesprächen, Ishikawa oder 5-Why.','Problem konkret beschreiben: Was, wo, seit wann, wie viel?','Maßnahmen direkt im Problem anlegen oder vorhandene aus dem Maßnahmenplan zuordnen.','Status der Maßnahmen antippen (offen → in Arbeit → erledigt) – jede Änderung landet mit Datum im Verlauf, Terminverschiebungen auch.','Zwischenstände als Update festhalten, z. B. „Test mit Balancer läuft seit Montag“.','Wirkung prüfen und das Problem dann auf „gelöst“ setzen.'],
+ tip:'Erledigte Maßnahmen heißen noch nicht, dass das Problem gelöst ist – erst die geprüfte Wirkung zählt. Rote Rauten im Zeitplan = Termin überschritten.'}},
 notes:{name:'Notizen',icon:'📝',short:'Beobachtungen, Gesprächsnotizen und Ideen zum Projekt.',
  guide:{why:'Hier sammelst du alles, was nicht in ein Werkzeug passt oder was du schnell festhalten willst.',
  steps:['Notiz schreiben und optional einem Werkzeug zuordnen.','Zugeordnete Notizen erscheinen auch direkt im jeweiligen Werkzeug.'],tip:''}}
 };
-const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','talk','act','notes'];
+const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','talk','prob','act','notes'];
 
 const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
 const CAT={ws:['Wertschöpfend','var(--va)'],nws:['Notwendig','var(--nva)'],v:['Verschwendung','var(--w)']};
@@ -263,7 +275,7 @@ const FIVE_S=[['Sortieren',['Nur benötigte Materialien und Werkzeuge am Platz',
 /* ===== Navigation ===== */
 function go(v){V.view=v;render();window.scrollTo(0,0)}
 function openP(id){V.pid=id;save();go('project')}
-function openT(id){V.tool=id;go('tool')}
+function openT(id,keep){if(!keep)V.prid=null;V.tool=id;go('tool')}
 function guide(id){const t=TOOLS[id],g=t.guide;modal(`<h2>${t.icon} ${t.name}</h2><h3>Wofür?</h3><p>${g.why}</p><h3>So geht's</h3><ol>${g.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}<button class="btn pri wide" onclick="closeM()">Verstanden</button>`)}
 const intro=id=>`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
 function hdr(title,back,tool){return `${back?`<button class="back" onclick="${back}">‹</button>`:''}<h1>${title}</h1>${tool?`<button class="info" onclick="guide('${tool}')">ⓘ Anleitung</button>`:''}`}
@@ -274,7 +286,7 @@ function render(){
  if(V.view==='home'){h.innerHTML=hdr('<span class="logo">Busch</span> LEAN');a.innerHTML=homeV()}
  else if(V.view==='lib'){h.innerHTML=hdr('Werkzeuge & Anleitungen',"go('home')");a.innerHTML=libV()}
  else if(V.view==='project'){h.innerHTML=hdr(esc(P().name),"go('home')");a.innerHTML=projectV(P())}
- else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(t.icon+' '+t.name,"go('project')",V.tool);a.innerHTML=R[V.tool](p)}
+ else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(t.icon+' '+t.name,V.tool==='prob'&&V.prid?"V.prid=null;render();scrollTo(0,0)":"go('project')",V.tool);a.innerHTML=R[V.tool](p)}
 }
 
 /* ===== Startseite & Projekt ===== */
@@ -290,7 +302,7 @@ function projCard(p){
  return `<div class="pcard" style="--pc:${c}" onclick="openP('${p.id}')">
  <div class="ptop"><div class="pav">${esc(ini)}</div><div style="flex:1;min-width:0"><div class="pname">${esc(p.name)}</div><div class="psub">${p.desc?esc(trunc(p.desc,70)):'Zuletzt bearbeitet '+ago(p.updated||p.created)}</div></div><div class="pgo">›</div></div>
  <div class="pbody">${mini('Ist',k.compl+' %',k.compl)}${mini('Soll',sc+' %',sc)}${mini('Maßnahmen',k.done+'/'+k.total,pct(k.done,k.total))}</div>
- <div class="pfoot">${isFinite(ci.invDays)?`<span class="chip">⏳ DLZ ${fmt(ci.invDays,1)} AT</span>`:''}${openA?`<span class="chip">✅ ${openA} offen</span>`:''}${late?`<span class="chip c" style="background:var(--bad)">⚠️ ${late} überfällig</span>`:''}${openT?`<span class="chip">💬 ${openT} Anliegen</span>`:''}${p.muda.obs.length?`<span class="chip">🔍 ${p.muda.obs.length}</span>`:''}${p.desc?`<span class="mut sm" style="margin-left:auto">${ago(p.updated||p.created)}</span>`:''}</div></div>`;
+ <div class="pfoot">${isFinite(ci.invDays)?`<span class="chip">⏳ DLZ ${fmt(ci.invDays,1)} AT</span>`:''}${openA?`<span class="chip">✅ ${openA} offen</span>`:''}${late?`<span class="chip c" style="background:var(--bad)">⚠️ ${late} überfällig</span>`:''}${openT?`<span class="chip">💬 ${openT} Anliegen</span>`:''}${(p.problems||[]).filter(x=>x.status!=='gelöst').length?`<span class="chip">🎯 ${(p.problems||[]).filter(x=>x.status!=='gelöst').length} Probleme</span>`:''}${p.muda.obs.length?`<span class="chip">🔍 ${p.muda.obs.length}</span>`:''}${p.desc?`<span class="mut sm" style="margin-left:auto">${ago(p.updated||p.created)}</span>`:''}</div></div>`;
 }
 function homeV(){
  const ps=S.projects.slice().sort((a,b)=>(b.updated||b.created)-(a.updated||a.created));
@@ -308,7 +320,7 @@ function delP(){const p=P();if(!confirm(`Projekt „${p.name}“ mit allen Daten
 function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`busch-lean-sicherung-${today()}.json`;document.body.appendChild(a);a.click();a.remove()}
 function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.projects))throw 0;if(!confirm('Vorhandene Daten durch die Sicherung ersetzen?'))return;S=d;S.projects.forEach(fix);save();render();toast('Sicherung importiert')}catch(e){alert('Datei ist keine gültige Busch-LEAN-Sicherung.')}};r.readAsText(f)}
 
-const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
+const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
 
 function projectV(p){
  const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
@@ -336,20 +348,20 @@ function delNote(id){if(!confirm('Notiz löschen?'))return;const p=P();p.notes=p
 function notesV(p){const ns=p.notes.slice().sort((a,b)=>b.t-a.t);return intro('notes')+`<div class="card"><textarea id="nt" rows="4" placeholder="Beobachtung, Idee, Gesprächsnotiz…"></textarea><div class="row" style="margin-top:8px"><select id="ng" style="flex:1">${opt('','Allgemein','')}${ORDER.filter(x=>x!=='notes').map(id=>opt(id,TOOLS[id].name,'')).join('')}</select><button class="btn pri" onclick="addNote(document.getElementById('ng').value,'nt')">Speichern</button></div></div>${ns.map(n=>noteCard(p,n)).join('')||'<div class="empty">Noch keine Notizen.</div>'}`}
 
 /* ===== Maßnahmen ===== */
-function addAction(text,src){if(!text||!String(text).trim()){toast('Kein Text für die Maßnahme');return}P().actions.push({id:uid(),text:String(text).trim(),who:'',due:'',status:'offen',src:src||'',created:Date.now()});save();toast('Als Maßnahme übernommen')}
+function addAction(text,src,pid){if(!text||!String(text).trim()){toast('Kein Text für die Maßnahme');return}P().actions.push({id:uid(),text:String(text).trim(),who:'',due:'',status:'offen',src:src||'',pid:pid||'',created:Date.now(),log:[]});save();toast('Als Maßnahme übernommen')}
 const ST_NEXT={offen:'in Arbeit','in Arbeit':'erledigt',erledigt:'offen'};
-function cycleSt(id){const a=P().actions.find(x=>x.id===id);a.status=ST_NEXT[a.status]||'offen';save();render()}
+function cycleSt(id){const a=P().actions.find(x=>x.id===id);a.status=ST_NEXT[a.status]||'offen';a.doneAt=a.status==='erledigt'?Date.now():null;logA(a,a.status==='erledigt'?'erledigt':'Status → '+a.status);if(a.pid)touchProb(a.pid);save();render()}
 function delAct(id){if(!confirm('Maßnahme löschen?'))return;const p=P();p.actions=p.actions.filter(a=>a.id!==id);save();render()}
-function newAct(){const t=$('#at').value.trim();if(!t){$('#at').focus();return}P().actions.push({id:uid(),text:t,who:$('#aw').value.trim(),due:$('#ad').value,status:'offen',src:'',created:Date.now()});save();render()}
+function newAct(){const t=$('#at').value.trim();if(!t){$('#at').focus();return}const pid=$('#ap').value;P().actions.push({id:uid(),text:t,who:$('#aw').value.trim(),due:$('#ad').value,status:'offen',src:'',pid,created:Date.now(),log:[]});if(pid)touchProb(pid);save();render()}
 function actV(p){
  const order={offen:0,'in Arbeit':1,erledigt:2},td=today();
  const all=p.actions,done=all.filter(a=>a.status==='erledigt').length,over=all.filter(a=>a.status!=='erledigt'&&a.due&&a.due<td).length;
  let list=all.slice();if(V.af==='offen')list=list.filter(a=>a.status!=='erledigt');if(V.af==='erledigt')list=list.filter(a=>a.status==='erledigt');
  list.sort((a,b)=>order[a.status]-order[b.status]||(a.due||'9').localeCompare(b.due||'9'));
  return intro('act')+`<div class="card">${progRow('Umsetzungsgrad',`${done} / ${all.length}`,pct(done,all.length))}${over?`<p class="sm over" style="margin:6px 0 0">${over} Maßnahme(n) überfällig</p>`:''}</div>
- <div class="card"><input id="at" placeholder="Was wird gemacht?"><div class="grid2" style="margin-top:8px"><input id="aw" placeholder="Wer?"><input id="ad" type="date"></div><button class="btn pri wide" onclick="newAct()">+ Maßnahme anlegen</button></div>
+ <div class="card"><input id="at" placeholder="Was wird gemacht?"><div class="grid2" style="margin-top:8px"><input id="aw" placeholder="Wer?"><input id="ad" type="date"></div>${p.problems.length?`<select id="ap" style="margin-top:8px">${probOpts(p,'')}</select>`:'<input id="ap" type="hidden" value="">'}<button class="btn pri wide" onclick="newAct()">+ Maßnahme anlegen</button></div>
  <div class="seg">${[['offen','Offen'],['alle','Alle'],['erledigt','Erledigt']].map(([k,l])=>`<button class="${V.af===k?'on':''}" onclick="V.af='${k}';render()">${l}</button>`).join('')}</div>
- ${list.map(a=>{const i=p.actions.indexOf(a),late=a.status!=='erledigt'&&a.due&&a.due<td;return `<div class="card act ${a.status==='erledigt'?'done':''}"><div class="row"><button class="st ${a.status==='in Arbeit'?'arbeit':a.status}" onclick="cycleSt('${a.id}')">${a.status}</button>${a.src?`<span class="chip">${esc(a.src)}</span>`:''}<span style="flex:1"></span><button class="ib" onclick="delAct('${a.id}')">✕</button></div><input class="txt" style="margin-top:8px" value="${esc(a.text)}" oninput="upd('actions.${i}.text',this.value)"><div class="grid2" style="margin-top:6px"><input placeholder="Verantwortlich" value="${esc(a.who)}" oninput="upd('actions.${i}.who',this.value)"><input type="date" class="${late?'over':''}" value="${esc(a.due)}" onchange="upr('actions.${i}.due',this.value)"></div>${late?'<div class="sm over" style="margin-top:4px">überfällig</div>':''}</div>`}).join('')||'<div class="empty">Keine Maßnahmen in dieser Ansicht.</div>'}`+notesBox(p,'act');
+ ${list.map(a=>{const i=p.actions.indexOf(a),late=a.status!=='erledigt'&&a.due&&a.due<td;return `<div class="card act ${a.status==='erledigt'?'done':''}"><div class="row"><button class="st ${a.status==='in Arbeit'?'arbeit':a.status}" onclick="cycleSt('${a.id}')">${a.status}</button>${a.src?`<span class="chip">${esc(a.src)}</span>`:''}<span style="flex:1"></span><button class="ib" onclick="delAct('${a.id}')">✕</button></div><input class="txt" style="margin-top:8px" value="${esc(a.text)}" oninput="upd('actions.${i}.text',this.value)"><div class="grid2" style="margin-top:6px"><input placeholder="Verantwortlich" value="${esc(a.who)}" oninput="upd('actions.${i}.who',this.value)"><input type="date" class="${late?'over':''}" value="${esc(a.due)}" onchange="setDue('${a.id}',this.value)"></div>${p.problems.length?`<select style="margin-top:6px" onchange="setProb('${a.id}',this.value)">${probOpts(p,a.pid||'')}</select>`:''}${late?'<div class="sm over" style="margin-top:4px">überfällig</div>':''}</div>`}).join('')||'<div class="empty">Keine Maßnahmen in dieser Ansicht.</div>'}`+notesBox(p,'act');
 }
 
 /* ===== Wertstrom ===== */
@@ -499,7 +511,7 @@ function mudaV(p){
  return intro('muda')+`<details class="card"><summary>Die 8 Verschwendungsarten</summary>${MUDA.map(m=>`<p class="sm" style="margin:6px 0"><span class="chip c" style="background:${m[3]}">${m[1]}</span> ${m[2]}</p>`).join('')}</details>
  <h2>Beobachtung erfassen</h2><div class="card grid2"><label class="f full"><span>Art</span><select id="mt">${MUDA.map(m=>opt(m[0],m[1],'')).join('')}</select></label><label class="f"><span>Station</span><input id="ms" placeholder="z. B. Endmontage 3"></label><label class="f"><span>Dauer je Vorkommen <i>(s)</i></span><input id="mdur" inputmode="decimal"></label><label class="f full"><span>Beschreibung</span><input id="md" placeholder="Was genau passiert?"></label><label class="f"><span>Häufigkeit je Schicht</span><input id="mf" inputmode="decimal"></label><div style="display:flex;align-items:flex-end"><button class="btn pri" style="width:100%" onclick="addObs()">+ Erfassen</button></div></div>
  <h2>Auswertung · ${fmt(sum,1)} min Verschwendung je Schicht</h2><div class="card">${eva}</div>
- <h2>Beobachtungen (${obs.length})</h2>${obs.slice().reverse().map(o=>{const m=MUDA.find(x=>x[0]===o.type)||MUDA[0],mins=(num(o.dur)||0)*(num(o.freq)||0)/60;return `<div class="card"><div class="row"><span><span class="chip c" style="background:${m[3]}">${m[1]}</span> <span class="mut sm">${esc(o.station)}</span></span><span class="sm"><b>${fmt(mins,1)} min</b>/Schicht</span></div><div style="margin:6px 0">${esc(o.desc)||'<span class="mut">ohne Beschreibung</span>'}</div><div class="row"><span class="mut sm">${has(o.dur)?fmt(num(o.dur),0)+' s':'?'} × ${has(o.freq)?fmt(num(o.freq),0):'?'}</span><span><button class="btn sm" onclick="obsAct('${o.id}')">→ Maßnahme</button><button class="ib" onclick="delObs('${o.id}')">✕</button></span></div></div>`}).join('')||'<div class="empty">Noch keine Beobachtungen.</div>'}`+notesBox(p,'muda');
+ <h2>Beobachtungen (${obs.length})</h2>${obs.slice().reverse().map(o=>{const m=MUDA.find(x=>x[0]===o.type)||MUDA[0],mins=(num(o.dur)||0)*(num(o.freq)||0)/60;return `<div class="card"><div class="row"><span><span class="chip c" style="background:${m[3]}">${m[1]}</span> <span class="mut sm">${esc(o.station)}</span></span><span class="sm"><b>${fmt(mins,1)} min</b>/Schicht</span></div><div style="margin:6px 0">${esc(o.desc)||'<span class="mut">ohne Beschreibung</span>'}</div><div class="row"><span class="mut sm">${has(o.dur)?fmt(num(o.dur),0)+' s':'?'} × ${has(o.freq)?fmt(num(o.freq),0):'?'}</span><span><button class="btn sm" onclick="obsAct('${o.id}')">→ Maßnahme</button><button class="btn sm" onclick="obsProb('${o.id}')">→ Problem</button><button class="ib" onclick="delObs('${o.id}')">✕</button></span></div></div>`}).join('')||'<div class="empty">Noch keine Beobachtungen.</div>'}`+notesBox(p,'muda');
 }
 function addObs(){const g=id=>document.getElementById(id).value.trim();if(!g('md')&&!g('mdur')){toast('Beschreibung oder Dauer eintragen');return}P().muda.obs.push({id:uid(),type:g('mt'),station:g('ms'),desc:g('md'),dur:g('mdur'),freq:g('mf'),t:Date.now()});save();render();toast('Erfasst')}
 function delObs(id){if(!confirm('Beobachtung löschen?'))return;const p=P();p.muda.obs=p.muda.obs.filter(o=>o.id!==id);save();render()}
@@ -580,7 +592,7 @@ function causeWhy(id){const p=P(),c=p.ishi.causes.find(x=>x.id===id);p.whys.push
 function ishiV(p){
  V.live=()=>{const e=$('#fishw');if(e)e.innerHTML=fish(P())};
  const lastCat=V.icat||'Mensch';
- return intro('ishi')+`<div class="card">${area('Problem (Kopf des Fisches)','ishi.problem',p.ishi.problem,'z. B. 4 % Nacharbeit an Gehäusemontage',2)}</div>
+ return intro('ishi')+`<div class="card">${area('Problem (Kopf des Fisches)','ishi.problem',p.ishi.problem,'z. B. 4 % Nacharbeit an Gehäusemontage',2)}<button class="btn sm" style="margin-top:8px" onclick="ishiProb()">→ Als Problem verfolgen</button></div>
  <div id="fishw">${fish(p)}</div><p class="mut sm" style="margin-top:-4px">Seitlich wischen · ★ = Hauptursache</p>
  <div class="card"><div class="grid2"><select id="ic" onchange="V.icat=this.value">${M6.map(m=>opt(m,m,lastCat)).join('')}</select><input id="it" placeholder="Mögliche Ursache" onkeydown="if(event.key==='Enter')addCause()"></div><button class="btn pri wide" onclick="addCause()">+ Ursache</button></div>
  ${M6.map(cat=>{const cs=p.ishi.causes.filter(c=>c.cat===cat);return cs.length?`<h2>${cat}</h2>${cs.map(c=>`<div class="card"><div class="row"><span style="${c.main?'font-weight:700;color:var(--bad)':''}">${esc(c.text)}</span><button class="ib" onclick="delCause('${c.id}')">✕</button></div><div class="row gap" style="margin-top:6px"><button class="btn sm" onclick="togMain('${c.id}')">${c.main?'★ Hauptursache':'☆ markieren'}</button><button class="btn sm" onclick="causeWhy('${c.id}')">→ 5-Why</button><button class="btn sm" onclick="causeAct('${c.id}')">→ Maßnahme</button></div></div>`).join('')}`:''}).join('')}`+notesBox(p,'ishi');
@@ -594,7 +606,7 @@ function whyV(p){
  return intro('why')+p.whys.map((w,i)=>`<div class="card"><div class="row"><b>Analyse ${i+1}</b><button class="ib" onclick="delWhy(${i})">✕</button></div><div style="margin-top:8px">${area('Problem',`whys.${i}.problem`,w.problem,'Was, wo, wann, wie viel?',2)}</div>
  ${w.whys.map((x,j)=>`<div style="margin-top:8px;padding-left:${j*8}px">${fld(`${j+1}. Warum?`,`whys.${i}.whys.${j}`,x,{ph:j===0?'Weil …':'Und warum das?'})}</div>`).join('')}
  <div style="margin-top:10px">${fld('🎯 Grundursache',`whys.${i}.root`,w.root)}</div><div style="margin-top:8px">${fld('Gegenmaßnahme',`whys.${i}.measure`,w.measure)}</div>
- <button class="btn sm" style="margin-top:10px" onclick="whyAct(${i})">→ In Maßnahmenplan</button></div>`).join('')+`<button class="btn pri wide" onclick="addWhy()">+ Neue 5-Why-Analyse</button>`+notesBox(p,'why');
+ <button class="btn sm" style="margin-top:10px" onclick="whyAct(${i})">→ In Maßnahmenplan</button> <button class="btn sm" style="margin-top:10px" onclick="whyProb(${i})">→ Als Problem verfolgen</button></div>`).join('')+`<button class="btn pri wide" onclick="addWhy()">+ Neue 5-Why-Analyse</button>`+notesBox(p,'why');
 }
 
 /* ===== 5S ===== */
@@ -644,7 +656,7 @@ function talkV(p){
  const card=t=>{const i=p.talks.indexOf(t),k=TALK_KIND[t.kind]||TALK_KIND.idee,q=`talks.${i}`;return `<div class="card"><div class="row"><span><span class="chip c" style="background:${k[1]}">${k[0]}</span> <span class="chip">${esc(t.topic)}</span></span><button class="st ${TALK_CLS[t.status]}" onclick="talkSt('${t.id}')">${t.status}</button></div>
   <div style="margin:8px 0 4px">${esc(t.text)}</div>${t.quote?`<div class="quote">„${esc(t.quote)}“</div>`:''}
   <div class="mut sm">${new Date(t.date).toLocaleDateString('de-DE')} · ${t.anon?'anonym':esc(t.person)||'ohne Namen'}${t.station?' · '+esc(t.station):''}${t.kind!=='positiv'?` · Belastung <span class="lvl">${'●'.repeat(t.level)}${'○'.repeat(5-t.level)}</span>`:''}</div>
-  <div class="row gap" style="margin-top:8px">${t.kind!=='positiv'?`<button class="btn sm${t.feedback?' on':''}" onclick="talkFb('${t.id}')">${t.feedback?'✓ Rückmeldung '+new Date(t.fbDate).toLocaleDateString('de-DE'):'Rückmeldung offen'}</button><button class="btn sm" onclick="talkAct('${t.id}')">→ Maßnahme</button>`:''}<span style="flex:1"></span><button class="ib" onclick="delTalk('${t.id}')">✕</button></div>
+  <div class="row gap" style="margin-top:8px">${t.kind!=='positiv'?`<button class="btn sm${t.feedback?' on':''}" onclick="talkFb('${t.id}')">${t.feedback?'✓ Rückmeldung '+new Date(t.fbDate).toLocaleDateString('de-DE'):'Rückmeldung offen'}</button><button class="btn sm" onclick="talkAct('${t.id}')">→ Maßnahme</button><button class="btn sm" onclick="talkProb('${t.id}')">→ Problem</button>`:''}<span style="flex:1"></span><button class="ib" onclick="delTalk('${t.id}')">✕</button></div>
   <details style="margin-top:6px"><summary class="sm mut">Bearbeiten</summary><div class="grid2" style="margin-top:8px">
   ${area('Anliegen',q+'.text',t.text,'',2).replace('<label class="f">','<label class="f full">')}${fld('Zitat',q+'.quote',t.quote,{cls:'full'})}
   <label class="f"><span>Art</span><select onchange="upr('${q}.kind',this.value)">${Object.entries(TALK_KIND).map(([v,x])=>opt(v,x[0],t.kind)).join('')}</select></label>
@@ -743,9 +755,12 @@ async function exportXlsx(){
   const cnt=TALK_TOPIC.map(t=>[t,p.talks.filter(x=>x.topic===t&&x.kind!=='positiv').length,'#2563eb']).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
   if(cnt.length){xSub(ws,'Ideen & Ärgernisse nach Thema');await xImg(ws,wb,hbar(cnt,''),620)}
   xTable(ws,['Datum','Mitarbeiter','Station','Art','Thema','Anliegen','Zitat','Belastung','Status','Rückmeldung'],p.talks.map(t=>[dDE(t.date),t.anon?'anonym':t.person,t.station,TALK_KIND[t.kind][0],t.topic,t.text,t.quote,t.kind==='positiv'?null:t.level,t.status,t.kind==='positiv'?'':t.feedback?dDE(t.fbDate):'offen']))}
+ if(p.problems.length){ws=newWs(wb,'Probleme',[40,60,16,18,16,14,12]);xTitle(ws,'Probleme & Maßnahmen',p.name);
+  xTable(ws,['Problem','Beschreibung','Station','Quelle','Status','Erfasst','Erledigt'],p.problems.map(pr=>{const as=p.actions.filter(a=>a.pid===pr.id);return[pr.title,pr.desc,pr.station,pr.src,pr.status,dDE(pr.created),`${as.filter(a=>a.status==='erledigt').length}/${as.length}`]}));
+  for(const pr of p.problems){const as=p.actions.filter(a=>a.pid===pr.id);xSub(ws,`🎯 ${pr.title} – ${pr.status}`);if(as.length)await xImg(ws,wb,gantt(pr,as),560);xTable(ws,['Datum','Ereignis'],probEvents(p,pr).map(e=>[e.plan?dDE(e.t):new Date(e.t).toLocaleString('de-DE'),(e.plan?(e.late?'ÜBERFÄLLIG – ':'Geplant – '):'')+e.txt]))}}
  if(p.actions.length){ws=newWs(wb,'Maßnahmen',[50,20,14,14,22]);xTitle(ws,'Maßnahmenplan',p.name);
   xSub(ws,'Status');await xImg(ws,wb,hbar([['offen','#dc2626'],['in Arbeit','#d97706'],['erledigt','#16a34a']].map(([st,c])=>[st,p.actions.filter(a=>a.status===st).length,c]),''),560);
-  xTable(ws,['Maßnahme','Verantwortlich','Termin','Status','Quelle'],p.actions.map(a=>[a.text,a.who,dDE(a.due),a.status,a.src]))}
+  xTable(ws,['Maßnahme','Verantwortlich','Termin','Status','Quelle','Problem','Erledigt am'],p.actions.map(a=>[a.text,a.who,dDE(a.due),a.status,a.src,(p.problems.find(x=>x.id===a.pid)||{}).title||'',a.doneAt?dDE(a.doneAt):'']),[50,20,14,14,22,36,14])}
  if(p.notes.length){ws=newWs(wb,'Notizen',[18,22,80]);xTitle(ws,'Notizen',p.name);xTable(ws,['Zeit','Werkzeug','Notiz'],p.notes.slice().sort((a,b)=>a.t-b.t).map(n=>[new Date(n.t).toLocaleString('de-DE'),n.tag&&TOOLS[n.tag]?TOOLS[n.tag].name:'Allgemein',n.text]))}
  const buf=await wb.xlsx.writeBuffer(),fname=`Busch-LEAN_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.xlsx`;
  V.xlFile=new File([buf],fname,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -756,7 +771,80 @@ async function exportXlsx(){
 function xlShare(){navigator.share({files:[V.xlFile],title:V.xlFile.name}).then(closeM).catch(()=>{})}
 function xlDownload(){const a=document.createElement('a');a.href=URL.createObjectURL(V.xlFile);a.download=V.xlFile.name;document.body.appendChild(a);a.click();a.remove();closeM()}
 
-const R={talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
+/* ===== Probleme ===== */
+const PST=['offen','in Bearbeitung','gelöst'],PCLS={'offen':'offen','in Bearbeitung':'arbeit','gelöst':'erledigt'};
+const probOpts=(p,cur)=>opt('','– keinem Problem zugeordnet –',cur)+p.problems.map(x=>opt(x.id,'🎯 '+trunc(x.title,40),cur)).join('');
+const curProb=()=>P().problems.find(x=>x.id===V.prid);
+const actBy=id=>P().actions.find(x=>x.id===id);
+const dueT=a=>a.due?new Date(a.due+'T12:00').getTime():NaN;
+function logA(a,txt){(a.log=a.log||[]).push({t:Date.now(),txt})}
+function touchProb(pid){const pr=P().problems.find(x=>x.id===pid);if(pr&&pr.status==='offen'){pr.status='in Bearbeitung';pr.log.push({t:Date.now(),txt:'Status → in Bearbeitung',kind:'st'})}}
+function newProblem(title,desc,station,src){const pr={id:uid(),title:title||'Neues Problem',desc:desc||'',station:station||'',src:src||'',status:'offen',created:Date.now(),log:[]};P().problems.push(pr);save();return pr}
+function toProblem(title,desc,station,src){const pr=newProblem(trunc(String(title||'').trim()||'Neues Problem',90),desc,station,src);V.prid=pr.id;openT('prob',1);toast('Problem angelegt')}
+function obsProb(id){const o=P().muda.obs.find(x=>x.id===id),m=MUDA.find(x=>x[0]===o.type)||MUDA[0];toProblem(o.desc||m[1],`${m[1]}${o.desc?': '+o.desc:''}${has(o.dur)?` – ${o.dur} s × ${o.freq||'?'} je Schicht`:''}`,o.station,'Verschwendung')}
+function talkProb(id){const t=talkById(id);if(t.status==='neu')t.status='in Prüfung';toProblem(t.text,`${TALK_KIND[t.kind][0]} (${t.topic})${t.quote?' – „'+t.quote+'“':''}`,t.station,'Mitarbeitergespräch')}
+function whyProb(i){const w=P().whys[i];toProblem(w.problem||'Problem aus 5-Why',w.root?'Grundursache: '+w.root:'','','5-Why')}
+function ishiProb(){const p=P(),m=p.ishi.causes.filter(c=>c.main);toProblem(p.ishi.problem||'Problem aus Ishikawa',m.length?'Hauptursachen: '+m.map(c=>c.text+' ('+c.cat+')').join(', '):'','','Ishikawa')}
+function addProbUI(){const t=$('#pt').value.trim();if(!t){$('#pt').focus();return}const pr=newProblem(t,'',$('#ps').value.trim(),'');V.prid=pr.id;render();scrollTo(0,0)}
+function openProb(id){V.prid=id;render();scrollTo(0,0)}
+function setPSt(st){const pr=curProb();if(pr.status===st)return;pr.status=st;pr.log.push({t:Date.now(),txt:'Status → '+st,kind:'st'});if(st==='gelöst')pr.solvedAt=Date.now();save();render()}
+function addUpd(){const e=$('#pu'),t=e.value.trim();if(!t){e.focus();return}curProb().log.push({t:Date.now(),txt:t,kind:'upd'});save();render();toast('Update gespeichert')}
+function delUpd(i){if(!confirm('Update löschen?'))return;curProb().log.splice(i,1);save();render()}
+function addProbAct(){const t=$('#pat').value.trim();if(!t){$('#pat').focus();return}P().actions.push({id:uid(),text:t,who:$('#paw').value.trim(),due:$('#pad').value,status:'offen',src:'Problem',pid:V.prid,created:Date.now(),log:[]});touchProb(V.prid);save();render();toast('Maßnahme angehängt')}
+function linkAct(id){if(!id)return;const a=actBy(id);a.pid=V.prid;logA(a,'dem Problem zugeordnet');touchProb(V.prid);save();render()}
+function unlinkAct(id){if(!confirm('Maßnahme von diesem Problem lösen? Sie bleibt im Maßnahmenplan.'))return;actBy(id).pid='';save();render()}
+function setProb(aid,pid){const a=actBy(aid);a.pid=pid;if(pid){logA(a,'dem Problem zugeordnet');touchProb(pid)}save();render()}
+function setDue(id,v){const a=actBy(id);if((a.due||'')===v)return;logA(a,v?`Termin ${a.due?'verschoben auf':'gesetzt:'} ${new Date(v+'T12:00').toLocaleDateString('de-DE')}`:'Termin entfernt');a.due=v;save();render()}
+function delProb(){if(!confirm('Problem löschen? Zugeordnete Maßnahmen bleiben im Maßnahmenplan erhalten.'))return;const p=P();p.actions.forEach(a=>{if(a.pid===V.prid)a.pid=''});p.problems=p.problems.filter(x=>x.id!==V.prid);V.prid=null;save();render()}
+function probEvents(p,pr){
+ const ev=[{t:pr.created,ic:'🎯',txt:'Problem erfasst'+(pr.src?' (aus '+pr.src+')':'')}],now=Date.now();
+ pr.log.forEach((l,i)=>ev.push({t:l.t,ic:l.kind==='st'?(l.txt.includes('gelöst')?'🏁':'🔄'):'💬',txt:l.txt,del:l.kind==='upd'?i:null}));
+ p.actions.filter(a=>a.pid===pr.id).forEach(a=>{
+  ev.push({t:a.created||pr.created,ic:'➕',txt:`Maßnahme angelegt: ${a.text}${a.who?' – '+a.who:''}`});
+  (a.log||[]).forEach(l=>ev.push({t:l.t,ic:l.txt==='erledigt'?'✅':l.txt.startsWith('Termin')?'🗓️':l.txt.startsWith('dem')?'🔗':'▶️',txt:`${a.text}: ${l.txt}`}));
+  if(a.status!=='erledigt'&&a.due){const t=dueT(a);ev.push({t,ic:'📅',txt:`Termin: ${a.text}${a.who?' ('+a.who+')':''}`,plan:true,late:t<now-432e5})}});
+ return ev.sort((a,b)=>a.t-b.t)}
+function gantt(pr,acts){if(!acts.length)return '';const D=864e5,now=Date.now();
+ let t0=Math.min(pr.created,...acts.map(a=>a.created||pr.created)),t1=Math.max(now,...acts.map(dueT).filter(isFinite),...acts.map(a=>a.doneAt||0));
+ t0=new Date(new Date(t0).toDateString()).getTime();t1=new Date(new Date(t1).toDateString()).getTime()+D;if(t1-t0<7*D)t1=t0+7*D;
+ const W=400,L=112,R=12,T=26,rh=30,H=T+acts.length*rh+6,x=t=>L+(t-t0)/(t1-t0)*(W-L-R),span=Math.round((t1-t0)/D),step=Math.max(1,Math.ceil(span/4));let s='';
+ for(let d=0;d<=span;d+=step){const t=t0+d*D;s+=`<line x1="${x(t)}" x2="${x(t)}" y1="${T-4}" y2="${H}" class="ax"/><text x="${x(t)}" y="${T-9}" text-anchor="middle" class="sm">${new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</text>`}
+ acts.forEach((a,i)=>{const y=T+i*rh,st=a.created||pr.created,en=a.status==='erledigt'?(a.doneAt||now):now,col=a.status==='erledigt'?'#16a34a':a.status==='in Arbeit'?'#d97706':'#64748b';
+  s+=`<text x="${L-8}" y="${y+17}" text-anchor="end">${esc(trunc(a.text,17))}</text><rect x="${x(st)}" y="${y+7}" width="${Math.max(5,x(en)-x(st))}" height="${rh-14}" rx="4" style="fill:${col}"/>`;
+  const dt=dueT(a);if(isFinite(dt)){const late=(a.status!=='erledigt'&&dt<now-432e5)||(a.status==='erledigt'&&a.doneAt>dt+432e5),X=x(dt),Y=y+rh/2;s+=`<path d="M${X} ${Y-8}L${X+8} ${Y}L${X} ${Y+8}L${X-8} ${Y}Z" style="fill:${late?'#dc2626':'#17202a'};stroke:#fff;stroke-width:1.5"/>`}});
+ s+=`<line x1="${x(now)}" x2="${x(now)}" y1="${T-4}" y2="${H}" class="takt"/><text x="${x(now)}" y="${H+13}" text-anchor="middle" class="tk" style="font-size:10px">Heute</text>`;
+ return `<svg viewBox="0 0 ${W} ${H+18}" class="chart" style="width:100%">${s}</svg>`}
+function probStats(p,pr){const as=p.actions.filter(a=>a.pid===pr.id),done=as.filter(a=>a.status==='erledigt').length,td=today(),open=as.filter(a=>a.status!=='erledigt'),late=open.filter(a=>a.due&&a.due<td).length,next=open.filter(a=>a.due).sort((a,b)=>a.due.localeCompare(b.due))[0];return{as,done,late,next}}
+function probV(p){
+ const pr=curProb();if(pr)return probDetail(p,pr);V.prid=null;
+ const list=p.problems.slice().sort((a,b)=>(a.status==='gelöst')-(b.status==='gelöst')||b.created-a.created);
+ return intro('prob')+`<div class="card"><input id="pt" placeholder="Neues Problem, z. B. 4 % Nacharbeit Gehäuse" onkeydown="if(event.key==='Enter')addProbUI()"><div class="row" style="margin-top:8px;flex-wrap:nowrap"><input id="ps" placeholder="Station (optional)"><button class="btn pri" onclick="addProbUI()">＋ Anlegen</button></div></div>
+ ${list.map(pr=>{const k=probStats(p,pr);return `<div class="card link" onclick="openProb('${pr.id}')"><div class="row"><b style="font-size:16px">${esc(pr.title)}</b><span class="st ${PCLS[pr.status]}">${pr.status}</span></div>
+ <div class="mut sm" style="margin:2px 0 8px">${dDE(pr.created)}${pr.station?' · '+esc(pr.station):''}${pr.src?' · aus '+esc(pr.src):''}</div>
+ ${k.as.length?progRow('Maßnahmen',`${k.done} / ${k.as.length}`,pct(k.done,k.as.length)):'<div class="mut sm">Noch keine Maßnahmen angehängt</div>'}
+ <div class="chips">${k.late?`<span class="chip c" style="background:var(--bad)">⚠️ ${k.late} überfällig</span>`:''}${k.next?`<span class="chip">📅 nächster Termin ${dDE(k.next.due+'T12:00')}</span>`:''}</div></div>`}).join('')||'<div class="empty">Noch keine Probleme. Lege oben eins an oder übernimm es mit „→ Problem“ aus einem anderen Werkzeug.</div>'}`+notesBox(p,'prob');
+}
+function probDetail(p,pr){
+ const i=p.problems.indexOf(pr),k=probStats(p,pr),ev=probEvents(p,pr),now=Date.now(),days=Math.floor((((pr.status==='gelöst'&&pr.solvedAt)||now)-pr.created)/864e5);
+ const past=ev.filter(e=>!e.plan),fut=ev.filter(e=>e.plan);
+ const item=e=>`<div class="tli${e.plan?' plan':''}${e.late?' late':''}"><span class="tld">${e.ic}</span><div><div class="sm mut">${e.plan?(e.late?'überfällig seit ':'')+dDE(e.t):new Date(e.t).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}</div><div>${esc(e.txt)}</div></div>${e.del!=null?`<button class="ib" onclick="delUpd(${e.del})">✕</button>`:''}</div>`;
+ const free=p.actions.filter(a=>!a.pid);
+ const acts=k.as.map(a=>{const j=p.actions.indexOf(a),late=a.status!=='erledigt'&&a.due&&a.due<today();return `<div class="card act ${a.status==='erledigt'?'done':''}"><div class="row"><button class="st ${a.status==='in Arbeit'?'arbeit':a.status}" onclick="cycleSt('${a.id}')">${a.status}</button><span style="flex:1"></span><button class="ib" title="Vom Problem lösen" onclick="unlinkAct('${a.id}')">⛓︎✕</button></div>
+  <input class="txt" style="margin-top:8px" value="${esc(a.text)}" oninput="upd('actions.${j}.text',this.value)"><div class="grid2" style="margin-top:6px"><input placeholder="Verantwortlich" value="${esc(a.who)}" oninput="upd('actions.${j}.who',this.value)"><input type="date" class="${late?'over':''}" value="${esc(a.due)}" onchange="setDue('${a.id}',this.value)"></div>${late?'<div class="sm over" style="margin-top:4px">überfällig</div>':''}</div>`}).join('');
+ return `<div class="card">${fld('Problem',`problems.${i}.title`,pr.title)}<div style="height:8px"></div>${area('Beschreibung',`problems.${i}.desc`,pr.desc,'Was, wo, seit wann, wie viel?',2)}<div class="grid2" style="margin-top:8px">${fld('Station',`problems.${i}.station`,pr.station)}<label class="f"><span>Erfasst</span><input value="${dDE(pr.created)}${pr.src?' · '+esc(pr.src):''}" disabled></label></div></div>
+ <div class="seg">${PST.map(st=>`<button class="${pr.status===st?'on':''}" onclick="setPSt('${st}')">${st==='gelöst'?'🏁 ':''}${st}</button>`).join('')}</div>
+ ${k.as.length&&k.done===k.as.length&&pr.status!=='gelöst'?`<div class="intro"><span>Alle Maßnahmen sind erledigt. Wirkt die Lösung? Dann das Problem als gelöst markieren.</span><button class="lnk" onclick="setPSt('gelöst')">Gelöst ✓</button></div>`:''}
+ <div class="kpis"><div class="kpi"><span>Maßnahmen</span><b>${k.done}<small> / ${k.as.length} erledigt</small></b></div><div class="kpi"><span>${pr.status==='gelöst'?'Gelöst nach':'Offen seit'}</span><b>${days}<small> Tagen</small></b></div><div class="kpi"><span>Nächster Termin</span><b style="font-size:16px">${k.next?dDE(k.next.due+'T12:00'):'–'}</b>${k.late?`<i class="over">${k.late} überfällig</i>`:''}</div></div>
+ ${k.as.length?`<h2>Zeitplan</h2><div class="card">${gantt(pr,k.as)}<div class="leg"><span><i style="background:#64748b"></i>offen</span><span><i style="background:#d97706"></i>in Arbeit</span><span><i style="background:#16a34a"></i>erledigt</span><span>◆ Termin</span><span style="color:var(--bad)">◆ überschritten</span></div></div>`:''}
+ <h2>Maßnahmen zu diesem Problem</h2>${acts}
+ <div class="card"><input id="pat" placeholder="Neue Maßnahme zu diesem Problem"><div class="grid2" style="margin-top:8px"><input id="paw" placeholder="Wer?"><input id="pad" type="date"></div><button class="btn pri wide" onclick="addProbAct()">+ Maßnahme anhängen</button>
+ ${free.length?`<select style="margin-top:10px" onchange="linkAct(this.value)"><option value="">🔗 Vorhandene Maßnahme zuordnen …</option>${free.map(a=>opt(a.id,trunc(a.text,50)+(a.status==='erledigt'?' (erledigt)':''),'')).join('')}</select>`:''}</div>
+ <h2>Verlauf</h2><div class="card"><div class="row" style="flex-wrap:nowrap"><input id="pu" placeholder="Update, z. B. Test mit Balancer läuft" onkeydown="if(event.key==='Enter')addUpd()"><button class="btn sm pri" onclick="addUpd()">＋</button></div>
+ <div class="tl" style="margin-top:14px">${past.map(item).join('')}</div>${fut.length?`<div class="tlnow">Heute · geplant</div><div class="tl">${fut.map(item).join('')}</div>`:''}</div>
+ <button class="btn del sm" onclick="delProb()">Problem löschen</button>`;
+}
+
+const R={prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
