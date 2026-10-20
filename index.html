@@ -75,6 +75,11 @@ label.f i{font-style:normal;opacity:.7}
 .tlnow{margin:2px 0 8px;font-size:12px;font-weight:700;color:var(--bad);display:flex;align-items:center;gap:8px}
 .tlnow:after{content:'';flex:1;height:2px;background:var(--bad);opacity:.6}
 .leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);margin-top:4px}.leg i{display:inline-block;width:14px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.greif{width:100%;height:auto;display:block;border-radius:10px;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;cursor:crosshair}
+.gfl{transform-box:fill-box;transform-origin:center;animation:gfl .45s ease-out forwards}
+@keyframes gfl{from{transform:scale(.3);opacity:.9}to{transform:scale(2);opacity:0}}
+button.chip{font:inherit;font-size:13px;padding:5px 12px;cursor:pointer;color:var(--tx)}
+button.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -198,7 +203,7 @@ const P=()=>S.projects.find(p=>p.id===V.pid);
 
 const newVsm=()=>({customer:{name:'',demand:'',shiftMin:'',shifts:'',breakMin:'',delivery:''},supplier:{name:'',delivery:''},info:{planning:'',custOrder:'',suppOrder:'',control:''},fg:'',steps:[]});
 const newStep=()=>({id:uid(),name:'',ct:'',co:'',avail:'',ops:'',par:'1',lot:'',scrap:'',inv:'',flow:'push'});
-const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],talks:[],problems:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
+const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],greifLive:{taps:[],cycles:0,parts:[]},talks:[],problems:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
 function fix(p){const d=newProject(p.name);for(const k in d)if(p[k]==null)p[k]=d[k];if(!p.spag.st)p.spag.st=[];if(!p.muda.laps)p.muda.laps=[];}
 
 function upd(path,val){let o=P();const k=path.split('.');for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val;save();if(V.live)V.live()}
@@ -228,10 +233,10 @@ spag:{name:'Spaghetti-Diagramm',icon:'🍝',short:'Laufwege aufzeichnen und Dist
  guide:{why:'Das Spaghetti-Diagramm macht die Wege von Mitarbeitern oder Material sichtbar. Viele Kreuzungen und lange Strecken zeigen Bewegungs- und Transportverschwendung und sind der Ansatz für ein besseres Layout.',
  steps:['Maßstab festlegen: Wie viele Meter entspricht ein Kästchen?','Im Modus „Station“ Arbeitsplätze, Regale und Lager setzen und benennen.','Im Modus „Weg“ der Reihe nach die Punkte antippen, die der Mitarbeiter in einem Zyklus abläuft.','Zyklen pro Schicht eintragen – die App rechnet die Laufstrecke und Gehzeit hoch.','Im Soll das Layout neu denken: Material zum Mitarbeiter bringen, nicht umgekehrt.'],
  tip:'Einen kompletten Zyklus mitlaufen. Jeder Weg zählt – auch der zum Drucker oder zur Schublade.'}},
-greif:{name:'Greifraumanalyse',icon:'✋',short:'Griffe nach Greifzonen bewerten – Ergonomie und Bewegungsverschwendung.',
- guide:{why:'Die Greifraumanalyse prüft, ob Teile und Werkzeuge im optimalen Greifraum liegen. Jeder Griff außerhalb kostet Zeit und belastet den Körper.',
- steps:['Für jedes Teil bzw. Werkzeug am Platz einen Eintrag anlegen.','Greifzone wählen: A = Unterarm, Ellbogen am Körper · B = ausgestreckter Arm · C = Rumpf beugen oder drehen · D = Schritt nötig.','Anzahl Griffe pro Zyklus eintragen.','Auswertung: Häufige Griffe gehören in Zone A, C und D sollten verschwinden.','Verbesserungen (Teil näher, Schrägregal, Greifschale) als Maßnahme übernehmen.'],
- tip:'Häufigkeit schlägt Entfernung: Ein Teil, das 20× pro Zyklus gegriffen wird, gehört direkt vor den Mitarbeiter.'}},
+greif:{name:'Greifraumanalyse',icon:'✋',short:'Live mitzählen: Bei jedem Griff des Werkers in den passenden Bereich der Grafik tippen.',
+ guide:{why:'Die Greifraumanalyse zeigt, ob Teile und Werkzeuge im optimalen Greifraum liegen. Jeder Griff außerhalb – und besonders jeder Griff hinter sich – kostet Zeit und belastet den Körper. Durch das Mittippen erfasst du live, was der Werker wirklich tut.',
+ steps:['Grafik als Draufsicht verstehen: Der Werker steht unten an der Tischkante, oben ist vom Werker weg.','Optional oben ein Teil wählen oder mit „＋ Teil“ anlegen – alle folgenden Griffe werden diesem Teil zugeordnet, bis du ein anderes wählst.','Bei jedem Griff in den passenden Bereich tippen: A = Unterarm, Ellbogen am Körper · B = Arm gestreckt · C = Rumpf beugen/drehen oder seitlich · D = Schritt nötig · H = hinter sich greifen.','Am Ende jedes Arbeitszyklus „Zyklus fertig“ tippen – daraus rechnet die App die Griffe je Zyklus.','Vertippt? „Rückgängig“ nimmt den letzten Griff zurück.','Auswertung: Anteil A+B sollte mindestens 80 % sein, Griffe nach hinten möglichst ganz vermeiden. Kritische Teile direkt als Maßnahme übernehmen.'],
+ tip:'Die Punkte in der Grafik bilden eine Wärmekarte – dort, wo sie sich häufen, wird am meisten gegriffen. Häufige Teile gehören direkt vor den Werker in Zone A.'}},
 ishi:{name:'Ishikawa',icon:'🐟',short:'Mögliche Ursachen eines Problems strukturiert nach den 6M sammeln.',
  guide:{why:'Das Ishikawa- oder Fischgrätendiagramm hilft im Team, alle möglichen Ursachen eines Problems zu sammeln und zu ordnen, statt vorschnell eine Lösung zu wählen.',
  steps:['Problem klar und messbar formulieren (Kopf des Fisches).','Ursachen den 6M zuordnen: Mensch, Maschine, Methode, Material, Milieu (Umwelt), Messung.','Erst sammeln, dann bewerten – beim Brainstorming nicht diskutieren.','Wahrscheinlichste Ursachen mit ★ markieren.','Hauptursachen mit 5-Why vertiefen und mit Daten bestätigen.'],
@@ -264,7 +269,7 @@ const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','talk','prob',
 
 const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
 const CAT={ws:['Wertschöpfend','var(--va)'],nws:['Notwendig','var(--nva)'],v:['Verschwendung','var(--w)']};
-const ZONES=[['A','Ideal','Unterarm, Ellbogen am Körper','#16a34a'],['B','Erweitert','Ausgestreckter Arm','#84cc16'],['C','Ungünstig','Rumpf beugen oder drehen','#f59e0b'],['D','Kritisch','Schritt / Gehen nötig','#dc2626']];
+const ZONES=[['A','Ideal','Unterarm, Ellbogen am Körper','#16a34a'],['B','Erweitert','Ausgestreckter Arm','#84cc16'],['C','Ungünstig','Rumpf beugen oder drehen','#f59e0b'],['D','Kritisch','Schritt / Gehen nötig','#dc2626'],['H','Hinter sich','Rumpf drehen, hinter den Körper greifen','#7f1d1d']];
 const M6=['Mensch','Maschine','Methode','Material','Milieu','Messung'];
 const FIVE_S=[['Sortieren',['Nur benötigte Materialien und Werkzeuge am Platz','Keine defekten oder unnötigen Gegenstände','Rote-Karte-Bereich vorhanden und genutzt','Persönliche Gegenstände sind geregelt']],
 ['Systematisieren',['Jeder Gegenstand hat einen festen, gekennzeichneten Platz','Werkzeuge in Griffweite, nach Nutzung angeordnet','Boden- und Lagerplatzmarkierungen vorhanden','Mindest-/Maximalbestände sichtbar']],
@@ -320,7 +325,7 @@ function delP(){const p=P();if(!confirm(`Projekt „${p.name}“ mit allen Daten
 function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`busch-lean-sicherung-${today()}.json`;document.body.appendChild(a);a.click();a.remove()}
 function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.projects))throw 0;if(!confirm('Vorhandene Daten durch die Sicherung ersetzen?'))return;S=d;S.projects.forEach(fix);save();render();toast('Sicherung importiert')}catch(e){alert('Datei ist keine gültige Busch-LEAN-Sicherung.')}};r.readAsText(f)}
 
-const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
+const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greifLive.taps.length} Griffe · ${p.greifLive.cycles} Zyklen`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
 
 function projectV(p){
  const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
@@ -556,18 +561,56 @@ function spagV(p){
  <div class="kpis" id="splive"></div>`+notesBox(p,'spag');
 }
 
-/* ===== Greifraum ===== */
+/* ===== Greifraum (Live-Aufnahme) ===== */
+const GW={A:1,B:2,C:3,D:4,H:5};
+function gzone(x,y){if(y>=262)return 'H';if(y>210)return 'C';const d=Math.hypot(x-180,y-210);return d<=70?'A':d<=120?'B':d<=165?'C':'D'}
+const gCount=taps=>{const c={A:0,B:0,C:0,D:0,H:0};taps.forEach(t=>c[t.zone]=(c[t.zone]||0)+1);return c};
+function greifSvg(g,live){
+ const c=gCount(g.taps),semi=(r,col)=>`<path d="M${180-r} 210A${r} ${r} 0 0 1 ${180+r} 210Z" style="fill:${col};stroke:#fff;stroke-width:2"/>`;
+ const lab=(x,y,z,n,col)=>`<text x="${x}" y="${y}" text-anchor="middle" style="font-weight:800;font-size:16px;fill:${col}">${z} · ${c[z]}</text><text x="${x}" y="${y+13}" text-anchor="middle" style="font-size:9.5px;fill:${col}">${n}</text>`;
+ let s=`<rect x="0" y="0" width="360" height="210" style="fill:#fecaca"/>${semi(165,'#fed7aa')}${semi(120,'#d9f99d')}${semi(70,'#bbf7d0')}
+ <rect x="0" y="210" width="360" height="52" style="fill:#fed7aa"/><rect x="0" y="262" width="360" height="68" style="fill:#fca5a5"/>
+ <line x1="0" y1="262" x2="360" y2="262" style="stroke:#fff;stroke-width:2"/><line x1="0" y1="210" x2="360" y2="210" style="stroke:#475569;stroke-width:3"/>
+ <text x="352" y="204" text-anchor="end" style="font-size:9px;fill:#475569">Tischkante</text>
+ ${lab(180,184,'A','Ideal','#14532d')}${lab(180,122,'B','Arm gestreckt','#3f6212')}${lab(180,72,'C','Beugen / Drehen','#9a3412')}${lab(42,26,'D','Schritt nötig','#991b1b')}${lab(318,26,'D','Schritt nötig','#991b1b')}
+ <text x="38" y="241" text-anchor="middle" style="font-size:11px;font-weight:800;fill:#9a3412">C seitlich</text><text x="322" y="241" text-anchor="middle" style="font-size:11px;font-weight:800;fill:#9a3412">C seitlich</text>
+ <ellipse cx="180" cy="238" rx="48" ry="17" style="fill:#64748b"/><circle cx="180" cy="236" r="14" style="fill:#334155"/><path d="M174 224L180 215L186 224Z" style="fill:#334155"/>
+ ${lab(180,298,'H','Hinter sich greifen','#7f1d1d')}`;
+ s+=g.taps.slice(-80).map(t=>t.x!=null?`<circle cx="${t.x}" cy="${t.y}" r="3.2" style="fill:#0f172a;fill-opacity:.38"/>`:'').join('');
+ if(live&&V.gflash){const f=V.gflash;V.gflash=null;s+=`<circle cx="${f.x}" cy="${f.y}" r="14" class="gfl" style="fill:none;stroke:#0f172a;stroke-width:3"/>`}
+ return `<svg viewBox="0 0 360 330" class="greif"${live?' onpointerdown="greifTap(event)"':''}>${s}</svg>`;
+}
+function greifTap(e){e.preventDefault();const svg=e.currentTarget,pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(svg.getScreenCTM().inverse()),x=Math.round(q.x),y=Math.round(q.y),z=gzone(x,y),g=P().greifLive;
+ g.taps.push({t:Date.now(),zone:z,part:V.gpart||'',cycle:g.cycles,x,y});V.gflash={x,y};save();try{navigator.vibrate&&navigator.vibrate(12)}catch(err){}
+ const host=$('#gsvg');if(host){host.innerHTML=greifSvg(g,true);const r=$('#glive');if(r)r.innerHTML=greifLiveInfo(g)}else render()}
+function greifLiveInfo(g){const cur=g.taps.filter(t=>t.cycle===g.cycles),last=g.taps[g.taps.length-1];return `Zyklus ${g.cycles+1}: <b>${cur.length}</b> Griffe${last?` · zuletzt <b>${last.zone}</b>${last.part?' ('+esc(last.part)+')':''}`:''}`}
+function gUndo(){const g=P().greifLive;if(!g.taps.length)return;g.taps.pop();save();render()}
+function gCycle(){const g=P().greifLive;if(!g.taps.some(t=>t.cycle===g.cycles)){toast('In diesem Zyklus wurde noch nichts getippt');return}g.cycles++;save();render();toast(`Zyklus ${g.cycles} abgeschlossen`)}
+function gReset(){if(!confirm('Live-Aufnahme komplett zurücksetzen?'))return;const g=P().greifLive;g.taps=[];g.cycles=0;save();render()}
+function gPart(i){const pt=P().greifLive.parts[i];V.gpart=V.gpart===pt?'':pt;render()}
+function gAddPart(){const n=(prompt('Teil / Werkzeug, z. B. Schraube M4')||'').trim();if(!n)return;const g=P().greifLive;if(!g.parts.includes(n))g.parts.push(n);V.gpart=n;save();render()}
+function gDelPart(){if(!V.gpart)return;if(!confirm(`Teil „${V.gpart}“ aus der Auswahl entfernen? Bereits erfasste Griffe bleiben erhalten.`))return;const g=P().greifLive;g.parts=g.parts.filter(x=>x!==V.gpart);V.gpart='';save();render()}
+function gPartRows(g){const m={};g.taps.forEach(t=>{const k=t.part||'ohne Teil';m[k]=m[k]||{part:k,n:0,c:{A:0,B:0,C:0,D:0,H:0},done:0};m[k].n++;m[k].c[t.zone]++;if(t.cycle<g.cycles)m[k].done++});
+ return Object.values(m).map(r=>({...r,per:g.cycles?r.done/g.cycles:NaN,bad:(r.c.C+r.c.D+r.c.H)/r.n})).sort((a,b)=>b.n-a.n)}
 function addGreif(){const part=$('#gp').value.trim();if(!part){$('#gp').focus();return}P().greif.push({id:uid(),part,zone:$('#gz').value,grips:$('#gg').value.trim()||'1'});save();render()}
 function delGreif(id){const p=P();p.greif=p.greif.filter(g=>g.id!==id);save();render()}
 function greifV(p){
- const tot={A:0,B:0,C:0,D:0};p.greif.forEach(g=>tot[g.zone]+=num(g.grips)||0);const all=Object.values(tot).reduce((a,b)=>a+b,0);
- const idx=all?(tot.A*1+tot.B*2+tot.C*3+tot.D*4)/all:NaN,good=pct(tot.A+tot.B,all);
- const zsvg=`<svg viewBox="0 0 300 175" class="zone" style="width:100%;max-width:380px;display:block;margin:auto"><path d="M10 160A140 140 0 0 1 290 160Z" fill="#f59e0b" opacity=".35"/><path d="M50 160A100 100 0 0 1 250 160Z" fill="#84cc16" opacity=".45"/><path d="M90 160A60 60 0 0 1 210 160Z" fill="#16a34a" opacity=".55"/><rect x="120" y="160" width="60" height="14" rx="6" fill="var(--mut)"/><text x="150" y="132" text-anchor="middle">A</text><text x="150" y="80" text-anchor="middle">B</text><text x="150" y="38" text-anchor="middle">C</text><text x="290" y="172" text-anchor="end" style="font-size:9px">D = außerhalb</text></svg>`;
- return intro('greif')+`<div class="card">${zsvg}<div class="mut sm" style="text-align:center">Draufsicht Arbeitsplatz – Mitarbeiter unten</div></div>
- <div class="card"><input id="gp" placeholder="Teil / Werkzeug, z. B. Schraube M4"><div class="grid2" style="margin-top:8px"><select id="gz">${ZONES.map(z=>opt(z[0],z[0]+' – '+z[1],'A')).join('')}</select><input id="gg" inputmode="decimal" placeholder="Griffe je Zyklus"></div><button class="btn pri wide" onclick="addGreif()">+ Hinzufügen</button></div>
- <h2>Auswertung</h2><div class="kpis"><div class="kpi"><span>Griffe je Zyklus</span><b>${fmt(all,0)}</b></div><div class="kpi"><span>Anteil Zone A+B</span><b class="${good<80&&all?'badc':''}">${fmt(good,0)}<small> %</small></b><i>Ziel ≥ 80 %</i></div><div class="kpi"><span>Greif-Index</span><b>${fmt(idx,2)}</b><i>1 = ideal, 4 = kritisch</i></div></div>
- ${all?`<div class="card"><div class="stack">${ZONES.map(z=>tot[z[0]]?`<i style="width:${pct(tot[z[0]],all)}%;background:${z[3]}"></i>`:'').join('')}</div>${ZONES.map(z=>`<div class="row sm"><span><b>${z[0]}</b> ${z[1]} – <span class="mut">${z[2]}</span></span><b>${fmt(tot[z[0]],0)}</b></div>`).join('')}</div>`:''}
- <h2>Teile (${p.greif.length})</h2>${p.greif.slice().sort((a,b)=>b.zone.localeCompare(a.zone)||num(b.grips)-num(a.grips)).map(g=>{const z=ZONES.find(x=>x[0]===g.zone);return `<div class="card row"><span><span class="chip c" style="background:${z[3]}">${z[0]}</span> <b>${esc(g.part)}</b> <span class="mut sm">${fmt(num(g.grips),0)}× je Zyklus</span></span><span>${g.zone>'B'?`<button class="btn sm" onclick="addAction('${esc(g.part).replace(/'/g,"\\'")} näher in den Greifraum bringen (aktuell Zone ${g.zone})','Greifraum')">→ Maßnahme</button>`:''}<button class="ib" onclick="delGreif('${g.id}')">✕</button></span></div>`}).join('')||'<div class="empty">Noch keine Teile erfasst.</div>'}`+notesBox(p,'greif');
+ const g=p.greifLive,c=gCount(g.taps),all=g.taps.length,done=g.taps.filter(t=>t.cycle<g.cycles).length;
+ const idx=all?g.taps.reduce((a,t)=>a+GW[t.zone],0)/all:NaN,good=pct(c.A+c.B,all),rows=gPartRows(g);
+ return intro('greif')+`<div class="card" style="padding:8px">
+ <div class="chips" style="margin:0 0 8px">${g.parts.map((pt,i)=>`<button class="chip${V.gpart===pt?' on':''}" onclick="gPart(${i})">${esc(pt)}</button>`).join('')}<button class="chip" onclick="gAddPart()">＋ Teil</button>${V.gpart?`<button class="chip" onclick="gDelPart()">✕</button>`:''}</div>
+ <div id="gsvg">${greifSvg(g,true)}</div>
+ <div class="sm" id="glive" style="margin:8px 4px">${greifLiveInfo(g)}</div>
+ <div class="row gap"><button class="btn sm" onclick="gUndo()">↶ Rückgängig</button><button class="btn sm pri" style="flex:1" onclick="gCycle()">✓ Zyklus ${g.cycles+1} fertig</button></div>
+ <p class="mut sm" style="margin:8px 4px 0">${V.gpart?`Griffe werden <b>${esc(V.gpart)}</b> zugeordnet. Teil nochmal antippen = ohne Teil.`:'Optional oben ein Teil wählen – dann werden die Griffe diesem Teil zugeordnet.'}</p></div>
+ <h2>Auswertung</h2><div class="kpis"><div class="kpi"><span>Griffe gesamt</span><b>${all}</b><i>${g.cycles} Zyklen abgeschlossen</i></div><div class="kpi"><span>Griffe je Zyklus</span><b>${g.cycles?fmt(done/g.cycles,1):'–'}</b></div><div class="kpi"><span>Anteil A+B</span><b class="${all&&good<80?'badc':''}">${fmt(good,0)}<small> %</small></b><i>Ziel ≥ 80 %</i></div><div class="kpi"><span>Greif-Index</span><b>${fmt(idx,2)}</b><i>1 = ideal · 5 = hinter sich</i></div></div>
+ ${c.H?`<div class="intro" style="background:#fde2e1;color:#7f1d1d;margin-top:8px"><span>⚠️ ${c.H}× hinter sich gegriffen – Rumpfdrehung belastet den Rücken. Teile nach vorne holen.</span></div>`:''}
+ ${all?`<div class="card" style="margin-top:8px"><div class="stack">${ZONES.map(z=>c[z[0]]?`<i style="width:${pct(c[z[0]],all)}%;background:${z[3]}"></i>`:'').join('')}</div>${ZONES.map(z=>`<div class="row sm"><span><b>${z[0]}</b> ${z[1]} – <span class="mut">${z[2]}</span></span><b>${c[z[0]]} · ${fmt(pct(c[z[0]],all),0)} %</b></div>`).join('')}</div>`:''}
+ ${rows.length&&!(rows.length===1&&rows[0].part==='ohne Teil')?`<h2>Nach Teil</h2>${rows.map(r=>`<div class="card"><div class="row"><b>${esc(r.part)}</b><span class="sm">${r.n} Griffe${isFinite(r.per)?` · Ø ${fmt(r.per,1)}/Zyklus`:''}</span></div><div class="stack">${ZONES.map(z=>r.c[z[0]]?`<i style="width:${pct(r.c[z[0]],r.n)}%;background:${z[3]}"></i>`:'').join('')}</div><div class="row"><span class="mut sm">${ZONES.filter(z=>r.c[z[0]]).map(z=>z[0]+' '+r.c[z[0]]).join(' · ')}</span>${r.bad>=.5&&r.part!=='ohne Teil'?`<button class="btn sm" onclick="addAction(${esc(JSON.stringify(r.part+' näher in den Greifraum A/B bringen ('+fmt(r.bad*100,0)+' % der Griffe in C/D/H)'))},'Greifraum')">→ Maßnahme</button>`:''}</div></div>`).join('')}`:''}
+ ${all?`<button class="btn del sm" onclick="gReset()">Live-Aufnahme zurücksetzen</button>`:''}
+ <details class="card" style="margin-top:14px"><summary>Teile manuell bewerten (ohne Live-Aufnahme)</summary>
+ <input id="gp" style="margin-top:10px" placeholder="Teil / Werkzeug, z. B. Schraube M4"><div class="grid2" style="margin-top:8px"><select id="gz">${ZONES.map(z=>opt(z[0],z[0]+' – '+z[1],'A')).join('')}</select><input id="gg" inputmode="decimal" placeholder="Griffe je Zyklus"></div><button class="btn wide" onclick="addGreif()">+ Hinzufügen</button>
+ ${p.greif.map(x=>{const z=ZONES.find(y=>y[0]===x.zone)||ZONES[0];return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span><span class="chip c" style="background:${z[3]}">${z[0]}</span> <b>${esc(x.part)}</b> <span class="mut sm">${fmt(num(x.grips),0)}× je Zyklus</span></span><button class="ib" onclick="delGreif('${x.id}')">✕</button></div>`}).join('')}</details>`+notesBox(p,'greif');
 }
 
 /* ===== Ishikawa ===== */
@@ -741,9 +784,10 @@ async function exportXlsx(){
   xTable(ws,['Abschnitt','Station','Kategorie','Zeit (s)','Zeitpunkt'],p.muda.laps.map(l=>[l.label,l.station,CAT[l.cat][0],rd(l.sec),new Date(l.t).toLocaleString('de-DE')]))}
  if(p.spag.pts.length||p.spag.st.length){ws=newWs(wb,'Spaghetti',[34,14]);xTitle(ws,'Spaghetti-Diagramm',p.name);await xImg(ws,wb,spagSvg(p.spag),700);const d=spagDist(p.spag),cy=num(p.spag.cycles);
   xTable(ws,['Kennzahl','Wert'],[['Maßstab (m je Kästchen)',nn(p.spag.scale)],['Weg je Zyklus (m)',rd(d)],['Zyklen je Schicht',nn(p.spag.cycles)],['Weg je Schicht (km)',rd(d*cy/1000,2)],['Gehzeit je Schicht (min, ca. 1 m/s)',rd(d*cy/60,0)]])}
- if(p.greif.length){ws=newWs(wb,'Greifraum',[32,10,18,16]);xTitle(ws,'Greifraumanalyse',p.name);const tot={A:0,B:0,C:0,D:0};p.greif.forEach(g=>tot[g.zone]+=num(g.grips)||0);
-  xSub(ws,'Griffe je Zyklus nach Zone');await xImg(ws,wb,hbar(ZONES.map(z=>[z[0]+' – '+z[1],tot[z[0]],z[3]]),'Griffe'),620);
-  xTable(ws,['Teil / Werkzeug','Zone','Bewertung','Griffe je Zyklus'],p.greif.map(g=>{const z=ZONES.find(x=>x[0]===g.zone);return[g.part,g.zone,z?z[1]:'',nn(g.grips)]}))}
+ if(p.greif.length||p.greifLive.taps.length){const gl=p.greifLive,c=gCount(gl.taps);ws=newWs(wb,'Greifraum',[30,10,10,10,10,10,10,14]);xTitle(ws,'Greifraumanalyse',p.name);
+  if(gl.taps.length){xSub(ws,`Live-Aufnahme: ${gl.taps.length} Griffe, ${gl.cycles} Zyklen`);await xImg(ws,wb,greifSvg(gl,false),420);await xImg(ws,wb,hbar(ZONES.map(z=>[z[0]+' – '+z[1],c[z[0]],z[3]]),'Griffe'),620);
+   xTable(ws,['Teil','Griffe',...ZONES.map(z=>'Zone '+z[0]),'Ø je Zyklus'],gPartRows(gl).map(r=>[r.part,r.n,...ZONES.map(z=>r.c[z[0]]),rd(r.per,1)]))}
+  if(p.greif.length){xSub(ws,'Teile manuell bewertet');xTable(ws,['Teil / Werkzeug','Zone','Bewertung','Griffe je Zyklus'],p.greif.map(g=>{const z=ZONES.find(x=>x[0]===g.zone);return[g.part,g.zone,z?z[1]:'',nn(g.grips)]}))}}
  if(p.ishi.problem||p.ishi.causes.length){ws=newWs(wb,'Ishikawa',[16,52,16]);xTitle(ws,'Ishikawa-Diagramm',p.ishi.problem||p.name);await xImg(ws,wb,svgOf(fish(p)),1000);xTable(ws,['Kategorie','Ursache','Hauptursache'],p.ishi.causes.map(c=>[c.cat,c.text,c.main?'★':'']))}
  if(p.whys.length){ws=newWs(wb,'5-Why',[30,26,26,26,26,26,30,30]);xTitle(ws,'5-Why-Analysen',p.name);xTable(ws,['Problem','1. Warum','2. Warum','3. Warum','4. Warum','5. Warum','Grundursache','Gegenmaßnahme'],p.whys.map(w=>[w.problem,...w.whys,w.root,w.measure]))}
  if(p.audits.length){ws=newWs(wb,'5S-Audit',[14,22,12,14,12,14,14,12]);xTitle(ws,'5S-Audits',p.name);const a=p.audits[p.audits.length-1],c=s5calc(a);
