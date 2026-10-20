@@ -35,6 +35,7 @@ h3{font-size:15px;margin:14px 0 6px}
 .empty{padding:22px;text-align:center;color:var(--mut);border:1.5px dashed var(--bd);border-radius:14px}
 input,select,textarea{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:9px 10px;-webkit-appearance:none;appearance:none}
 textarea{resize:vertical}
+input[type=checkbox]{-webkit-appearance:checkbox;appearance:auto;width:20px!important;height:20px;padding:0;accent-color:var(--pri)}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);outline-offset:-1px}
 .row input{flex:1}
 label.f{display:block}
@@ -96,6 +97,10 @@ th{font-size:12px;color:var(--mut);font-weight:600}
 .st{border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .st.offen{background:#fde2e1;color:#9b1c1c}.st.arbeit{background:#fef3c7;color:#92400e}.st.erledigt{background:#dcfce7;color:#166534}
 .over{color:var(--bad);font-weight:700}
+.st.neu{background:#dbeafe;color:#1e40af}.st.pruef{background:#fef3c7;color:#92400e}.st.umgesetzt{background:#dcfce7;color:#166534}.st.abgelehnt{background:#e5e7eb;color:#374151}
+.btn.on{background:var(--pri2);color:var(--pri);border-color:var(--pri)}
+.quote{border-left:3px solid var(--pri);padding:2px 0 2px 9px;margin:6px 0;font-style:italic;font-size:14px}
+.lvl{letter-spacing:1px;color:var(--bad)}
 .note{white-space:pre-wrap}
 .tip{background:var(--pri2);border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
@@ -170,7 +175,7 @@ const P=()=>S.projects.find(p=>p.id===V.pid);
 
 const newVsm=()=>({customer:{name:'',demand:'',shiftMin:'',shifts:'',breakMin:'',delivery:''},supplier:{name:'',delivery:''},info:{planning:'',custOrder:'',suppOrder:'',control:''},fg:'',steps:[]});
 const newStep=()=>({id:uid(),name:'',ct:'',co:'',avail:'',ops:'',par:'1',lot:'',scrap:'',inv:'',flow:'push'});
-const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
+const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],talks:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
 function fix(p){const d=newProject(p.name);for(const k in d)if(p[k]==null)p[k]=d[k];if(!p.spag.st)p.spag.st=[];if(!p.muda.laps)p.muda.laps=[];}
 
 function upd(path,val){let o=P();const k=path.split('.');for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val;save();if(V.live)V.live()}
@@ -220,11 +225,15 @@ act:{name:'Maßnahmenplan',icon:'✅',short:'Alle Maßnahmen mit Verantwortliche
  guide:{why:'Der Maßnahmenplan sammelt alle Verbesserungen aus den Werkzeugen und sorgt dafür, dass sie umgesetzt werden. Er ist die Grundlage für die Fortschrittskennzahlen.',
  steps:['Maßnahme konkret formulieren (Was genau wird geändert?).','Verantwortlichen und Termin festlegen.','Status antippen, um ihn weiterzuschalten: offen → in Arbeit → erledigt.','Überfällige Maßnahmen sind rot markiert.','Regelmäßig im Team durchgehen, z. B. in der Shopfloor-Runde.'],
  tip:'Eine Maßnahme ohne Namen und Termin ist nur eine Idee.'}},
+talk:{name:'Mitarbeitergespräche',icon:'💬',short:'Ideen, Ärgernisse und Belastungen aus Gesprächen mit Mitarbeitern dokumentieren und bis zur Rückmeldung verfolgen.',
+ guide:{why:'Die Mitarbeiter am Prozess kennen die Probleme am besten. In gezielten Gesprächen kommen Verbesserungsideen und Belastungen ans Licht, die in keiner Messung auftauchen. Entscheidend ist, dass jedes Anliegen verfolgt und dem Mitarbeiter zurückgemeldet wird – sonst sagt beim nächsten Mal niemand mehr etwas.',
+ steps:['Gespräch am Arbeitsplatz führen und das Ziel erklären: Es geht um den Prozess, nicht um die Bewertung der Person.','Mit den Leitfragen ins Gespräch kommen (im Werkzeug aufklappbar) – zuhören, nicht rechtfertigen.','Pro Anliegen einen Eintrag anlegen: Art (Idee, Ärgernis/Belastung, Läuft gut), Thema, Station, Beschreibung und gern ein wörtliches Zitat.','Belastung bzw. Dringlichkeit von 1 bis 5 gemeinsam mit dem Mitarbeiter einschätzen.','Status antippen, um ihn weiterzuschalten: neu → in Prüfung → umgesetzt → abgelehnt. Umsetzbares direkt mit „→ Maßnahme“ übernehmen.','Dem Mitarbeiter Rückmeldung geben und abhaken – auch bei einer Ablehnung, dann mit Begründung.'],
+ tip:'Namen nur mit Einverständnis notieren, im Zweifel „anonym“ wählen. Die Daten liegen nur auf deinem Gerät – beim Export und Weitergeben an Datenschutz und ggf. Betriebsrat denken.'}},
 notes:{name:'Notizen',icon:'📝',short:'Beobachtungen, Gesprächsnotizen und Ideen zum Projekt.',
  guide:{why:'Hier sammelst du alles, was nicht in ein Werkzeug passt oder was du schnell festhalten willst.',
  steps:['Notiz schreiben und optional einem Werkzeug zuordnen.','Zugeordnete Notizen erscheinen auch direkt im jeweiligen Werkzeug.'],tip:''}}
 };
-const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','act','notes'];
+const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','talk','act','notes'];
 
 const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
 const CAT={ws:['Wertschöpfend','var(--va)'],nws:['Notwendig','var(--nva)'],v:['Verschwendung','var(--w)']};
@@ -269,7 +278,7 @@ function delP(){const p=P();if(!confirm(`Projekt „${p.name}“ mit allen Daten
 function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`busch-lean-sicherung-${today()}.json`;document.body.appendChild(a);a.click();a.remove()}
 function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.projects))throw 0;if(!confirm('Vorhandene Daten durch die Sicherung ersetzen?'))return;S=d;S.projects.forEach(fix);save();render();toast('Sicherung importiert')}catch(e){alert('Datei ist keine gültige Busch-LEAN-Sicherung.')}};r.readAsText(f)}
 
-const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`};
+const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greif.length} Teile`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
 
 function projectV(p){
  const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
@@ -578,7 +587,58 @@ function s5V(p){
  <button class="btn del sm" onclick="delAudit()">Dieses Audit löschen</button>`+notesBox(p,'s5');
 }
 
-const R={vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
+/* ===== Mitarbeitergespräche ===== */
+const TALK_KIND={idee:['Idee','#2563eb'],aerger:['Ärgernis/Belastung','#dc2626'],positiv:['Läuft gut','#16a34a']};
+const TALK_TOPIC=['Ergonomie','Material','Werkzeug/Vorrichtung','Information','Organisation','Qualität','Arbeitssicherheit','Umgebung','Sonstiges'];
+const TALK_ST=['neu','in Prüfung','umgesetzt','abgelehnt'],TALK_CLS={'neu':'neu','in Prüfung':'pruef','umgesetzt':'umgesetzt','abgelehnt':'abgelehnt'};
+const TALK_LVL=['1 – kaum','2 – gering','3 – mittel','4 – hoch','5 – sehr hoch'];
+const TALK_Q=['Was hält dich bei der Arbeit am meisten auf?','Was ist besonders unangenehm oder nervt dich jeden Tag?','Wo musst du suchen, warten oder unnötig laufen?','Was ist körperlich anstrengend (Heben, Bücken, Strecken, Stehen)?','Wo entstehen Fehler oder Nacharbeit – und warum?','Welche Information fehlt dir oft oder kommt zu spät?','Welches Werkzeug oder Material macht Probleme?','Wenn du einen Tag Chef wärst: Was würdest du sofort ändern?','Was läuft gut und sollte unbedingt so bleiben?'];
+const isOpenT=t=>t.status==='neu'||t.status==='in Prüfung';
+function addTalk(){const g=id=>document.getElementById(id),text=g('tk_text').value.trim();if(!text){g('tk_text').focus();toast('Bitte das Anliegen beschreiben');return}
+ const anon=g('tk_anon').checked,last={date:g('tk_date').value||today(),person:anon?'':g('tk_person').value.trim(),anon,station:g('tk_st').value.trim()};V.tlast=last;
+ P().talks.push({id:uid(),...last,kind:g('tk_kind').value,topic:g('tk_topic').value,text,quote:g('tk_quote').value.trim(),level:+g('tk_lvl').value||3,status:'neu',feedback:false,fbDate:'',created:Date.now()});save();render();toast('Anliegen dokumentiert')}
+const talkById=id=>P().talks.find(x=>x.id===id);
+function talkSt(id){const t=talkById(id);t.status=TALK_ST[(TALK_ST.indexOf(t.status)+1)%TALK_ST.length];save();render()}
+function talkFb(id){const t=talkById(id);t.feedback=!t.feedback;t.fbDate=t.feedback?today():'';save();render()}
+function talkAct(id){const t=talkById(id);addAction(`${TALK_KIND[t.kind][0]}: ${t.text}${t.station?' ('+t.station+')':''}`,'Mitarbeitergespräch');if(t.status==='neu')t.status='in Prüfung';save();render()}
+function delTalk(id){if(!confirm('Eintrag löschen?'))return;const p=P();p.talks=p.talks.filter(t=>t.id!==id);save();render()}
+function talkV(p){
+ const ts=p.talks,L=V.tlast||{date:today(),person:'',anon:false,station:''},tf=V.tf||'offen';
+ const concerns=ts.filter(t=>t.kind!=='positiv'),open=ts.filter(isOpenT).length,fb=concerns.filter(t=>t.feedback).length,done=concerns.filter(t=>t.status==='umgesetzt').length;
+ const kpi=(l,v,u,h)=>`<div class="kpi"><span>${l}</span><b>${v}<small> ${u}</small></b>${h?`<i>${h}</i>`:''}</div>`;
+ const byT=TALK_TOPIC.map(tp=>{const c={idee:0,aerger:0,positiv:0};ts.forEach(t=>{if(t.topic===tp)c[t.kind]++});return[tp,c,c.idee+c.aerger+c.positiv]}).filter(x=>x[2]).sort((a,b)=>b[2]-a[2]),mx=Math.max(1,...byT.map(x=>x[2]));
+ const top=ts.filter(t=>t.kind==='aerger'&&isOpenT(t)).sort((a,b)=>b.level-a.level||b.created-a.created).slice(0,3);
+ let list=ts.slice();if(tf==='offen')list=list.filter(isOpenT);if(tf==='aerger'||tf==='idee')list=list.filter(t=>t.kind===tf);if(tf==='fb')list=list.filter(t=>t.kind!=='positiv'&&!t.feedback);
+ list.sort((a,b)=>(isOpenT(b)-isOpenT(a))||b.level-a.level||b.created-a.created);
+ const card=t=>{const i=p.talks.indexOf(t),k=TALK_KIND[t.kind]||TALK_KIND.idee,q=`talks.${i}`;return `<div class="card"><div class="row"><span><span class="chip c" style="background:${k[1]}">${k[0]}</span> <span class="chip">${esc(t.topic)}</span></span><button class="st ${TALK_CLS[t.status]}" onclick="talkSt('${t.id}')">${t.status}</button></div>
+  <div style="margin:8px 0 4px">${esc(t.text)}</div>${t.quote?`<div class="quote">„${esc(t.quote)}“</div>`:''}
+  <div class="mut sm">${new Date(t.date).toLocaleDateString('de-DE')} · ${t.anon?'anonym':esc(t.person)||'ohne Namen'}${t.station?' · '+esc(t.station):''}${t.kind!=='positiv'?` · Belastung <span class="lvl">${'●'.repeat(t.level)}${'○'.repeat(5-t.level)}</span>`:''}</div>
+  <div class="row gap" style="margin-top:8px">${t.kind!=='positiv'?`<button class="btn sm${t.feedback?' on':''}" onclick="talkFb('${t.id}')">${t.feedback?'✓ Rückmeldung '+new Date(t.fbDate).toLocaleDateString('de-DE'):'Rückmeldung offen'}</button><button class="btn sm" onclick="talkAct('${t.id}')">→ Maßnahme</button>`:''}<span style="flex:1"></span><button class="ib" onclick="delTalk('${t.id}')">✕</button></div>
+  <details style="margin-top:6px"><summary class="sm mut">Bearbeiten</summary><div class="grid2" style="margin-top:8px">
+  ${area('Anliegen',q+'.text',t.text,'',2).replace('<label class="f">','<label class="f full">')}${fld('Zitat',q+'.quote',t.quote,{cls:'full'})}
+  <label class="f"><span>Art</span><select onchange="upr('${q}.kind',this.value)">${Object.entries(TALK_KIND).map(([v,x])=>opt(v,x[0],t.kind)).join('')}</select></label>
+  <label class="f"><span>Thema</span><select onchange="upr('${q}.topic',this.value)">${TALK_TOPIC.map(x=>opt(x,x,t.topic)).join('')}</select></label>
+  <label class="f"><span>Belastung</span><select onchange="upr('${q}.level',+this.value)">${TALK_LVL.map((x,j)=>opt(String(j+1),x,String(t.level))).join('')}</select></label>
+  ${fld('Station',q+'.station',t.station)}${t.anon?'':fld('Mitarbeiter',q+'.person',t.person)}</div></details></div>`};
+ return intro('talk')+`<details class="card"><summary>💡 Leitfragen fürs Gespräch</summary><ol class="sm" style="padding-left:20px;margin:8px 0 0">${TALK_Q.map(x=>`<li style="margin-bottom:4px">${x}</li>`).join('')}</ol></details>
+ <h2>Anliegen erfassen</h2><div class="card"><div class="grid2">
+ <label class="f"><span>Datum</span><input id="tk_date" type="date" value="${esc(L.date)}"></label><label class="f"><span>Station</span><input id="tk_st" value="${esc(L.station)}" placeholder="z. B. Endmontage 2"></label>
+ <label class="f"><span>Mitarbeiter</span><input id="tk_person" value="${esc(L.person)}" placeholder="Name oder Kürzel"${L.anon?' disabled':''}></label>
+ <label class="f" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:9px"><input id="tk_anon" type="checkbox" style="width:auto"${L.anon?' checked':''} onchange="document.getElementById('tk_person').disabled=this.checked"> anonym</label>
+ <label class="f"><span>Art</span><select id="tk_kind">${Object.entries(TALK_KIND).map(([v,x])=>opt(v,x[0],'aerger')).join('')}</select></label>
+ <label class="f"><span>Thema</span><select id="tk_topic">${TALK_TOPIC.map(x=>opt(x,x,'')).join('')}</select></label>
+ <label class="f full"><span>Anliegen</span><textarea id="tk_text" rows="3" placeholder="Was genau ist das Problem bzw. die Idee?"></textarea></label>
+ <label class="f full"><span>Zitat <i>(optional)</i></span><input id="tk_quote" placeholder="Wörtlich, was der Mitarbeiter gesagt hat"></label>
+ <label class="f full"><span>Belastung / Dringlichkeit</span><select id="tk_lvl">${TALK_LVL.map((x,j)=>opt(String(j+1),x,'3')).join('')}</select></label></div>
+ <button class="btn pri wide" onclick="addTalk()">+ Anliegen speichern</button><p class="mut sm" style="margin:6px 0 0">Datum, Station und Mitarbeiter bleiben für das nächste Anliegen aus demselben Gespräch stehen.</p></div>
+ <h2>Auswertung</h2><div class="kpis">${kpi('Anliegen',ts.length,'',`${concerns.length} Ideen/Ärgernisse`)}${kpi('Offen',open,'','neu oder in Prüfung')}${kpi('Rückmeldequote',fmt(pct(fb,concerns.length),0),'%',`${fb} von ${concerns.length}`)}${kpi('Umgesetzt',fmt(pct(done,concerns.length),0),'%',`${done} von ${concerns.length}`)}</div>
+ ${byT.length?`<div class="card" style="margin-top:8px"><div class="sm mut" style="margin-bottom:4px">Nach Thema · <span style="color:#dc2626">■</span> Ärgernis <span style="color:#2563eb">■</span> Idee <span style="color:#16a34a">■</span> Läuft gut</div>${byT.map(([tp,c,n])=>`<div class="prog"><div class="row sm"><span>${tp}</span><b>${n}</b></div><div class="stack" style="width:${n/mx*100}%;margin:2px 0;height:12px">${['aerger','idee','positiv'].map(k=>c[k]?`<i style="width:${pct(c[k],n)}%;background:${TALK_KIND[k][1]}"></i>`:'').join('')}</div></div>`).join('')}</div>`:''}
+ ${top.length?`<h2>Größte offene Ärgernisse</h2>${top.map(card).join('')}`:''}
+ <h2>Alle Anliegen</h2><div class="seg">${[['offen','Offen'],['fb','Rückm. offen'],['aerger','Ärgernisse'],['idee','Ideen'],['alle','Alle']].map(([k,l])=>`<button class="${tf===k?'on':''}" onclick="V.tf='${k}';render()">${l}</button>`).join('')}</div>
+ ${list.map(card).join('')||'<div class="empty">Keine Einträge in dieser Ansicht.</div>'}`+notesBox(p,'talk');
+}
+
+const R={talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 load();render();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
