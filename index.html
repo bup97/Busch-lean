@@ -66,6 +66,7 @@ label.f i{font-style:normal;opacity:.7}
 .pm .row{white-space:nowrap;font-size:11.5px;color:var(--mut);margin-bottom:3px}.pm b{color:var(--tx);font-size:12.5px}
 .pfoot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 14px 12px}
 .pcount{background:var(--pri);color:#fff;border-radius:999px;min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-weight:800;padding:0 10px}
+.xl{--bg:#f3f4f6;--card:#fff;--tx:#17202a;--mut:#6b7280;--bd:#e2e5ea;--pri:#0f6e56;--pri2:#e3f2ec;--inv:#f6c453;--bad:#c62828;--ok:#15803d;color:#17202a}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -321,6 +322,7 @@ function projectV(p){
   ${progRow('Maßnahmen umgesetzt',`${k.done} / ${k.total}`,pct(k.done,k.total))}
   ${isFinite(dlzRed)?`<p class="sm" style="margin:8px 0 0">Geplante DLZ-Reduktion Ist → Soll: <b class="${dlzRed>0?'good':'badc'}">${fmt(dlzRed,0)} %</b></p>`:''}
  </div>
+ <button class="btn wide" style="margin:0 0 4px" onclick="exportXlsx()">📊 Excel-Export mit Diagrammen</button>
  <h2>Werkzeuge</h2><div class="tiles">${ORDER.map(id=>{const t=TOOLS[id];return `<div class="tile" onclick="openT('${id}')"><div class="ic">${t.icon}</div><b>${t.name}</b><span class="mut sm">${STAT[id](p)}</span></div>`}).join('')}</div>
  <div style="margin-top:24px"><button class="btn del sm" onclick="delP()">Projekt löschen</button></div>`;
 }
@@ -604,7 +606,7 @@ const curAudit=p=>p.audits.find(a=>a.id===V.aid)||p.audits[p.audits.length-1];
 function radar(vals){const cx=150,cy=128,R=92,n=5,pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)]};let s='';
  [.25,.5,.75,1].forEach(f=>{s+=`<polygon points="${[0,1,2,3,4].map(i=>pt(i,R*f).join(',')).join(' ')}" class="rg"/>`});
  FIVE_S.forEach((x,i)=>{const[X,Y]=pt(i,R),[lx,ly]=pt(i,R+18);s+=`<line x1="${cx}" y1="${cy}" x2="${X}" y2="${Y}" class="rg"/><text x="${lx}" y="${ly+4}" text-anchor="middle">${x[0]} ${fmt(vals[i],0)}%</text>`});
- s+=`<polygon points="${vals.map((v,i)=>pt(i,R*(v||0)/100).join(',')).join(' ')}" class="rv"/>`;return `<svg viewBox="0 0 300 250" class="radar" style="width:100%;max-width:400px;display:block;margin:auto">${s}</svg>`}
+ s+=`<polygon points="${vals.map((v,i)=>pt(i,R*(v||0)/100).join(',')).join(' ')}" class="rv"/>`;return `<svg viewBox="-50 0 400 250" class="radar" style="width:100%;max-width:400px;display:block;margin:auto">${s}</svg>`}
 function s5V(p){
  if(!p.audits.length)return intro('s5')+`<div class="empty">Noch kein Audit.<br><br><button class="btn pri" onclick="newAudit()">+ Erstes Audit starten</button></div>`+notesBox(p,'s5');
  const a=curAudit(p),i=p.audits.indexOf(a),c=s5calc(a);
@@ -666,6 +668,93 @@ function talkV(p){
  <h2>Alle Anliegen</h2><div class="seg">${[['offen','Offen'],['fb','Rückm. offen'],['aerger','Ärgernisse'],['idee','Ideen'],['alle','Alle']].map(([k,l])=>`<button class="${tf===k?'on':''}" onclick="V.tf='${k}';render()">${l}</button>`).join('')}</div>
  ${list.map(card).join('')||'<div class="empty">Keine Einträge in dieser Ansicht.</div>'}`+notesBox(p,'talk');
 }
+
+/* ===== Excel-Export ===== */
+const XL_URL='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+function loadXL(){if(window.ExcelJS)return Promise.resolve();return new Promise((res,rej)=>{const s=document.createElement('script');s.src=XL_URL;s.onload=res;s.onerror=()=>{s.remove();rej(new Error('offline'))};document.head.appendChild(s)})}
+const svgOf=h=>{const m=String(h||'').match(/<svg[\s\S]*<\/svg>/);return m?m[0]:null};
+async function svgPng(html,scale=2){
+ const host=document.createElement('div');host.className='xl';host.style.cssText='position:fixed;left:-99999px;top:0';host.innerHTML=html;document.body.appendChild(host);
+ const svg=host.querySelector('svg'),vb=(svg.getAttribute('viewBox')||'').split(/[ ,]+/).map(Number);
+ const W=vb[2]||+svg.getAttribute('width'),H=vb[3]||+svg.getAttribute('height');
+ svg.setAttribute('width',W);svg.setAttribute('height',H);svg.style.cssText=`width:${W}px;height:${H}px;max-width:none`;
+ const props=['fill','fill-opacity','stroke','stroke-width','stroke-dasharray','stroke-linejoin','stroke-linecap','opacity','font-size','font-weight','font-family','font-style','color'];
+ const els=[...svg.querySelectorAll('*')],sty=els.map(el=>{const cs=getComputedStyle(el);return props.map(k=>k+':'+cs.getPropertyValue(k)).join(';')});
+ els.forEach((el,i)=>el.setAttribute('style',sty[i]));svg.style.color=getComputedStyle(svg).color;
+ const xml=new XMLSerializer().serializeToString(svg);host.remove();
+ const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Diagramm konnte nicht gezeichnet werden'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)});
+ const cv=document.createElement('canvas');cv.width=Math.round(W*scale);cv.height=Math.round(H*scale);const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0,cv.width,cv.height);
+ return{base64:cv.toDataURL('image/png'),w:W,h:H};
+}
+function hbar(items,unit,dg=0,max){const W=620,L=190,rh=28,H=items.length*rh+12,mx=max||Math.max(1e-9,...items.map(x=>x[1]||0));let s='';
+ items.forEach(([l,v,c],i)=>{const y=6+i*rh,w=(W-L-90)*Math.max(0,v||0)/mx;s+=`<text x="${L-8}" y="${y+17}" text-anchor="end">${esc(trunc(l,30))}</text><rect x="${L}" y="${y+4}" width="${Math.max(1,w)}" height="${rh-10}" rx="3" style="fill:${c||'#0f6e56'}"/><text x="${L+w+6}" y="${y+17}" class="b">${fmt(v||0,dg)}${unit?' '+unit:''}</text>`});
+ return `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`}
+function spagSvg(sp){let g='';for(let x=0;x<=400;x+=20)g+=`<line x1="${x}" y1="0" x2="${x}" y2="280" class="gl"/>`;for(let y=0;y<=280;y+=20)g+=`<line x1="0" y1="${y}" x2="400" y2="${y}" class="gl"/>`;
+ const st=sp.st.map(s=>`<rect x="${s.x-22}" y="${s.y-11}" width="44" height="22" rx="4" class="sta"/><text x="${s.x}" y="${s.y+3.5}" text-anchor="middle" style="font-size:8.5px;font-weight:700">${esc(trunc(s.name,10))}</text>`).join('');
+ const pts=sp.pts.map(q=>q.x+','+q.y).join(' '),dots=sp.pts.map((q,i)=>`<circle cx="${q.x}" cy="${q.y}" r="${i===0||i===sp.pts.length-1?5:2.5}" style="fill:${i===0?'#15803d':'#dc2626'}"/>`).join('');
+ return `<svg viewBox="0 0 400 280" class="spag">${g}${st}${pts?`<polyline points="${pts}" class="path"/>`:''}${dots}</svg>`}
+const nn=v=>{const x=num(v);return isFinite(x)?x:null},rd=(x,d=1)=>isFinite(x)?Math.round(x*10**d)/10**d:null,dDE=d=>d?new Date(d).toLocaleDateString('de-DE'):'';
+function newWs(wb,name,widths){const ws=wb.addWorksheet(name.slice(0,31),{views:[{showGridLines:false}]});ws._r=1;(widths||[]).forEach((w,i)=>ws.getColumn(i+1).width=w);return ws}
+function xTitle(ws,t,sub){const c=ws.getCell(ws._r,1);c.value=t;c.font={bold:true,size:16,color:{argb:'FF0F6E56'}};ws._r++;if(sub){const d=ws.getCell(ws._r,1);d.value=sub;d.font={italic:true,color:{argb:'FF6B7280'}};ws._r++}ws._r++}
+function xSub(ws,t){const c=ws.getCell(ws._r,1);c.value=t;c.font={bold:true,size:12};ws._r++}
+function xTable(ws,heads,rows,widths){const r0=ws._r;
+ heads.forEach((h,i)=>{const c=ws.getCell(r0,i+1);c.value=h;c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0F6E56'}};c.alignment={vertical:'middle',wrapText:true}});
+ rows.forEach((row,j)=>row.forEach((v,i)=>{const c=ws.getCell(r0+1+j,i+1);c.value=(v===undefined||(typeof v==='number'&&!isFinite(v)))?null:v;c.alignment={vertical:'top',wrapText:true};c.border={bottom:{style:'thin',color:{argb:'FFE2E5EA'}}};if(j%2)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF6F8F7'}}}));
+ (widths||[]).forEach((w,i)=>{const col=ws.getColumn(i+1);col.width=Math.max(col.width||0,w)});
+ ws._r=r0+rows.length+2}
+async function xImg(ws,wb,svg,maxW=900){if(!svg)return;const im=await svgPng(svg),k=Math.min(1,maxW/im.w),w=im.w*k,h=im.h*k;ws.addImage(wb.addImage({base64:im.base64,extension:'png'}),{tl:{col:0,row:ws._r-1},ext:{width:w,height:h}});ws._r+=Math.ceil(h/20)+2}
+async function exportXlsx(){
+ const p=P();if(!p)return;toast('Excel wird erstellt …');
+ try{await loadXL()}catch(e){alert('Für den Excel-Export wird beim ersten Mal eine Internetverbindung benötigt.');return}
+ try{
+ const wb=new ExcelJS.Workbook();wb.creator='Busch LEAN';wb.created=new Date();let ws;
+ const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sc=vcomp(p.vsm.soll);
+ ws=newWs(wb,'Übersicht',[34,14,14,14]);xTitle(ws,p.name,`${p.desc?p.desc+' · ':''}Export vom ${new Date().toLocaleDateString('de-DE')}`);
+ xSub(ws,'Ergebniskennzahlen');xTable(ws,['Kennzahl','Ist','Soll','Einheit'],[['Kundentakt',rd(ci.takt),rd(cs.takt),'s'],['Durchlaufzeit',rd(ci.invDays,2),rd(cs.invDays,2),'Arbeitstage'],['Bearbeitungszeit',rd(ci.bz),rd(cs.bz),'s'],['Flussgrad',rd(ci.flow,3),rd(cs.flow,3),'%'],['Bestand gesamt',rd(ci.invPcs,0),rd(cs.invPcs,0),'Stk'],['Mitarbeiter',rd(ci.ops),rd(cs.ops),''],['Engpass (eff. Zykluszeit)',rd(ci.bottleneck?.eff),rd(cs.bottleneck?.eff),'s']]);
+ xSub(ws,'Fortschritt');await xImg(ws,wb,hbar([['Ist-Aufnahme vollständig',k.compl,'#0f6e56'],['Soll-Zustand definiert',sc,'#2563eb'],['Maßnahmen umgesetzt',pct(k.done,k.total),'#d97706']],'%',0,100),620);
+ xTable(ws,['Fortschritt','Wert'],[['Ist-Aufnahme vollständig (%)',k.compl],['Soll-Zustand definiert (%)',sc],['Maßnahmen erledigt',k.done],['Maßnahmen gesamt',k.total]]);
+ for(const [key,lab] of [['ist','Ist'],['soll','Soll']]){const v=p.vsm[key];if(!v.steps.length&&!has(v.customer.demand))continue;const c=vcalc(v);
+  ws=newWs(wb,'Wertstrom '+lab,[6,28,12,12,10,10,10,12,10,8,9,11,12,12]);xTitle(ws,`Wertstrom – ${lab}-Zustand`,p.name);
+  if(v.steps.length){xSub(ws,'Wertstromkarte');await xImg(ws,wb,svgOf(vsmMap(v,c)),1200)}
+  if(c.steps.some(s=>isFinite(s.eff))){xSub(ws,'Taktabgleich');await xImg(ws,wb,taktChart(c),620)}
+  xSub(ws,'Prozessschritte');xTable(ws,['Nr','Schritt','Bestand davor (Stk)','Steuerung','ZZ (s)','ZZ eff. (s)','Rüstzeit (min)','Verfügbarkeit (%)','Mitarbeiter','Plätze','Losgröße','Ausschuss (%)','Auslastung (%)','Reichweite (AT)'],c.steps.map((s,i)=>[i+1,s.name,nn(s.inv),{push:'Push',fifo:'FIFO',sm:'Supermarkt'}[s.flow]||'',nn(s.ct),rd(s.eff),nn(s.co),nn(s.avail),nn(s.ops),nn(s.par),nn(s.lot),nn(s.scrap),rd(s.util,0),rd(s.days,2)]));
+  xSub(ws,'Kunde, Lieferant & Informationsfluss');xTable(ws,['','Feld','Wert'],[['Kunde',v.customer.name],['Bedarf pro Tag (Stk)',nn(v.customer.demand)],['Schichten pro Tag',nn(v.customer.shifts)],['Schichtdauer (min)',nn(v.customer.shiftMin)],['Pausen je Schicht (min)',nn(v.customer.breakMin)],['Kundentakt (s)',rd(c.takt)],['Lieferfrequenz an Kunde',v.customer.delivery],['Lieferant',v.supplier.name],['Anlieferfrequenz',v.supplier.delivery],['Produktionsplanung',v.info.planning],['Kundenbestellung',v.info.custOrder],['Lieferantenabruf',v.info.suppOrder],['Steuerung / Schrittmacher',v.info.control],['Fertigwarenbestand (Stk)',nn(v.fg)]].map(r=>['',...r]));
+  xSub(ws,'Checkliste');xTable(ws,['','Punkt','Erfüllt'],vchecks(v).map(x=>['',x[0],x[1]?'✓':'offen']))}
+ if(p.muda.obs.length){ws=newWs(wb,'Verschwendung',[22,18,46,12,16,14]);xTitle(ws,'Verschwendungsaufnahme',p.name);
+  const tot=MUDA.map(m=>[m[1],p.muda.obs.filter(o=>o.type===m[0]).reduce((a,o)=>a+(num(o.dur)||0)*(num(o.freq)||0)/60,0),m[3]]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  if(tot.length){xSub(ws,'Minuten Verschwendung je Schicht');await xImg(ws,wb,hbar(tot,'min',1),620)}
+  xSub(ws,'Beobachtungen');xTable(ws,['Art','Station','Beschreibung','Dauer (s)','Häufigkeit/Schicht','min/Schicht'],p.muda.obs.map(o=>{const m=MUDA.find(x=>x[0]===o.type)||MUDA[0];return[m[1],o.station,o.desc,nn(o.dur),nn(o.freq),rd((num(o.dur)||0)*(num(o.freq)||0)/60,2)]}))}
+ if(p.muda.laps.length){ws=newWs(wb,'Zeitaufnahme',[32,18,18,12,20]);xTitle(ws,'Zeitaufnahme',p.name);const tot={ws:0,nws:0,v:0};p.muda.laps.forEach(l=>tot[l.cat]+=l.sec);const all=tot.ws+tot.nws+tot.v;
+  xSub(ws,'Zeitanteile');await xImg(ws,wb,hbar(Object.entries(CAT).map(([kk,c])=>[c[0],pct(tot[kk],all),c[1]]),'%',0,100),620);
+  xTable(ws,['Abschnitt','Station','Kategorie','Zeit (s)','Zeitpunkt'],p.muda.laps.map(l=>[l.label,l.station,CAT[l.cat][0],rd(l.sec),new Date(l.t).toLocaleString('de-DE')]))}
+ if(p.spag.pts.length||p.spag.st.length){ws=newWs(wb,'Spaghetti',[34,14]);xTitle(ws,'Spaghetti-Diagramm',p.name);await xImg(ws,wb,spagSvg(p.spag),700);const d=spagDist(p.spag),cy=num(p.spag.cycles);
+  xTable(ws,['Kennzahl','Wert'],[['Maßstab (m je Kästchen)',nn(p.spag.scale)],['Weg je Zyklus (m)',rd(d)],['Zyklen je Schicht',nn(p.spag.cycles)],['Weg je Schicht (km)',rd(d*cy/1000,2)],['Gehzeit je Schicht (min, ca. 1 m/s)',rd(d*cy/60,0)]])}
+ if(p.greif.length){ws=newWs(wb,'Greifraum',[32,10,18,16]);xTitle(ws,'Greifraumanalyse',p.name);const tot={A:0,B:0,C:0,D:0};p.greif.forEach(g=>tot[g.zone]+=num(g.grips)||0);
+  xSub(ws,'Griffe je Zyklus nach Zone');await xImg(ws,wb,hbar(ZONES.map(z=>[z[0]+' – '+z[1],tot[z[0]],z[3]]),'Griffe'),620);
+  xTable(ws,['Teil / Werkzeug','Zone','Bewertung','Griffe je Zyklus'],p.greif.map(g=>{const z=ZONES.find(x=>x[0]===g.zone);return[g.part,g.zone,z?z[1]:'',nn(g.grips)]}))}
+ if(p.ishi.problem||p.ishi.causes.length){ws=newWs(wb,'Ishikawa',[16,52,16]);xTitle(ws,'Ishikawa-Diagramm',p.ishi.problem||p.name);await xImg(ws,wb,svgOf(fish(p)),1000);xTable(ws,['Kategorie','Ursache','Hauptursache'],p.ishi.causes.map(c=>[c.cat,c.text,c.main?'★':'']))}
+ if(p.whys.length){ws=newWs(wb,'5-Why',[30,26,26,26,26,26,30,30]);xTitle(ws,'5-Why-Analysen',p.name);xTable(ws,['Problem','1. Warum','2. Warum','3. Warum','4. Warum','5. Warum','Grundursache','Gegenmaßnahme'],p.whys.map(w=>[w.problem,...w.whys,w.root,w.measure]))}
+ if(p.audits.length){ws=newWs(wb,'5S-Audit',[14,22,12,14,12,14,14,12]);xTitle(ws,'5S-Audits',p.name);const a=p.audits[p.audits.length-1],c=s5calc(a);
+  xSub(ws,`Letztes Audit: ${dDE(a.date)} ${a.area||''} – ${fmt(c.total,0)} %`);await xImg(ws,wb,radar(c.per.map(x=>x.p)),440);
+  if(p.audits.length>1){xSub(ws,'Verlauf');await xImg(ws,wb,hbar(p.audits.map(x=>[dDE(x.date)+' '+(x.area||''),s5calc(x).total,'#0f6e56']),'%',0,100),620)}
+  xTable(ws,['Datum','Bereich',...FIVE_S.map(s=>s[0]+' (%)'),'Gesamt (%)'],p.audits.map(x=>{const r=s5calc(x);return[dDE(x.date),x.area,...r.per.map(y=>rd(y.p,0)),rd(r.total,0)]}));
+  const rows=[];FIVE_S.forEach((s,si)=>s[1].forEach((q,qi)=>rows.push([s[0],q,a.scores[si+'-'+qi]??null])));xSub(ws,'Einzelbewertung letztes Audit (0–4)');xTable(ws,['S','Frage','Punkte'],rows,[16,60,10])}
+ if(p.talks.length){ws=newWs(wb,'Gespräche',[12,16,16,20,20,46,34,10,12,14]);xTitle(ws,'Mitarbeitergespräche',p.name);
+  const cnt=TALK_TOPIC.map(t=>[t,p.talks.filter(x=>x.topic===t&&x.kind!=='positiv').length,'#2563eb']).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
+  if(cnt.length){xSub(ws,'Ideen & Ärgernisse nach Thema');await xImg(ws,wb,hbar(cnt,''),620)}
+  xTable(ws,['Datum','Mitarbeiter','Station','Art','Thema','Anliegen','Zitat','Belastung','Status','Rückmeldung'],p.talks.map(t=>[dDE(t.date),t.anon?'anonym':t.person,t.station,TALK_KIND[t.kind][0],t.topic,t.text,t.quote,t.kind==='positiv'?null:t.level,t.status,t.kind==='positiv'?'':t.feedback?dDE(t.fbDate):'offen']))}
+ if(p.actions.length){ws=newWs(wb,'Maßnahmen',[50,20,14,14,22]);xTitle(ws,'Maßnahmenplan',p.name);
+  xSub(ws,'Status');await xImg(ws,wb,hbar([['offen','#dc2626'],['in Arbeit','#d97706'],['erledigt','#16a34a']].map(([st,c])=>[st,p.actions.filter(a=>a.status===st).length,c]),''),560);
+  xTable(ws,['Maßnahme','Verantwortlich','Termin','Status','Quelle'],p.actions.map(a=>[a.text,a.who,dDE(a.due),a.status,a.src]))}
+ if(p.notes.length){ws=newWs(wb,'Notizen',[18,22,80]);xTitle(ws,'Notizen',p.name);xTable(ws,['Zeit','Werkzeug','Notiz'],p.notes.slice().sort((a,b)=>a.t-b.t).map(n=>[new Date(n.t).toLocaleString('de-DE'),n.tag&&TOOLS[n.tag]?TOOLS[n.tag].name:'Allgemein',n.text]))}
+ const buf=await wb.xlsx.writeBuffer(),fname=`Busch-LEAN_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.xlsx`;
+ V.xlFile=new File([buf],fname,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+ let canShare=false;try{canShare=!!(navigator.canShare&&navigator.canShare({files:[V.xlFile]}))}catch(e){}
+ modal(`<h2>📊 Excel-Datei fertig</h2><p class="mut">${esc(fname)}<br>${wb.worksheets.length} Tabellenblätter mit Daten und Diagrammen.</p>${canShare?'<button class="btn pri wide" onclick="xlShare()">Teilen / In Dateien sichern</button>':''}<button class="btn wide${canShare?'':' pri'}" onclick="xlDownload()">Herunterladen</button>`);
+ }catch(e){console.error(e);alert('Excel-Export fehlgeschlagen: '+e.message)}
+}
+function xlShare(){navigator.share({files:[V.xlFile],title:V.xlFile.name}).then(closeM).catch(()=>{})}
+function xlDownload(){const a=document.createElement('a');a.href=URL.createObjectURL(V.xlFile);a.download=V.xlFile.name;document.body.appendChild(a);a.click();a.remove();closeM()}
 
 const R={talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
