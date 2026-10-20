@@ -168,8 +168,11 @@ const ARROW='<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="
 
 const KEY='buschlean_v2';
 let S;
+let STORE_OK=true;
+function storeTest(){try{localStorage.setItem('bl_test','1');STORE_OK=localStorage.getItem('bl_test')==='1';localStorage.removeItem('bl_test')}catch(e){STORE_OK=false}}
+function persist(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}}
 function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}if(!S||!Array.isArray(S.projects))S={projects:[]};S.projects.forEach(fix)}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('Speichern nicht möglich')}}
+function save(){try{S.last=V.pid||S.last||null;localStorage.setItem(KEY,JSON.stringify(S))}catch(e){STORE_OK=false;toast('⚠️ Speichern nicht möglich')}}
 let V={view:'home',pid:null,tool:null,vv:'ist',vt:'daten',af:'offen',sm:'weg',aid:null,tRun:null,tLast:null,lst:'',live:null};
 const P=()=>S.projects.find(p=>p.id===V.pid);
 
@@ -247,7 +250,7 @@ const FIVE_S=[['Sortieren',['Nur benötigte Materialien und Werkzeuge am Platz',
 
 /* ===== Navigation ===== */
 function go(v){V.view=v;render();window.scrollTo(0,0)}
-function openP(id){V.pid=id;go('project')}
+function openP(id){V.pid=id;save();go('project')}
 function openT(id){V.tool=id;go('tool')}
 function guide(id){const t=TOOLS[id],g=t.guide;modal(`<h2>${t.icon} ${t.name}</h2><h3>Wofür?</h3><p>${g.why}</p><h3>So geht's</h3><ol>${g.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}<button class="btn pri wide" onclick="closeM()">Verstanden</button>`)}
 const intro=id=>`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
@@ -266,7 +269,8 @@ function render(){
 function projStats(p){const t=p.actions.length,d=p.actions.filter(a=>a.status==='erledigt').length;return{compl:vcomp(p.vsm.ist),total:t,done:d}}
 function homeV(){
  const list=S.projects.slice().sort((a,b)=>b.created-a.created).map(p=>{const k=projStats(p);return `<div class="card proj" onclick="openP('${p.id}')"><div class="row"><b>${esc(p.name)}</b><span class="mut sm">${new Date(p.created).toLocaleDateString('de-DE')}</span></div>${p.desc?`<div class="mut sm">${esc(trunc(p.desc,120))}</div>`:''}<div class="chips"><span class="chip">Wertstrom ${k.compl}%</span><span class="chip">Maßnahmen ${k.done}/${k.total}</span><span class="chip">${p.muda.obs.length} Verschwendungen</span></div></div>`}).join('');
- return `<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung.</p></section>
+ const warn=STORE_OK?'':`<div class="card" style="border-color:var(--bad);background:#fde2e1;color:#7f1d1d"><b>⚠️ Dieser Browser speichert nichts dauerhaft.</b><div class="sm" style="margin-top:4px">Alles, was du hier anlegst, ist beim Schließen weg. Öffne die App über <b>bup97.github.io/Busch-lean</b> in Safari (nicht im privaten Modus) oder über das Symbol auf dem Home-Bildschirm.</div></div>`;
+ return warn+`<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung.</p></section>
  <div class="row gap" style="flex-wrap:nowrap"><input id="np" placeholder="Neues Projekt, z. B. Endmontage" onkeydown="if(event.key==='Enter')addP()"><button class="btn pri" onclick="addP()">Anlegen</button></div>
  <h2>Projekte</h2>${list||'<div class="empty">Noch keine Projekte. Lege oben dein erstes an.</div>'}
  <h2>Mehr</h2><div class="card link row" onclick="go('lib')"><span>📘 Lean-Werkzeuge & Kurzanleitungen</span><span class="mut">›</span></div>
@@ -639,7 +643,7 @@ function talkV(p){
 }
 
 const R={talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
-load();render();
+storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
