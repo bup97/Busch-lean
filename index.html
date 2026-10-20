@@ -55,6 +55,17 @@ label.f i{font-style:normal;opacity:.7}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{font-size:12px;background:var(--bg);border:1px solid var(--bd);border-radius:999px;padding:2px 9px}
 .chip.c{color:#fff;border:0}
+.pcard{position:relative;background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--pc);border-radius:16px;margin-bottom:14px;cursor:pointer;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);transition:transform .12s}
+.pcard:active{transform:scale(.985)}
+.ptop{display:flex;align-items:center;gap:12px;padding:14px 14px 10px;background:linear-gradient(90deg,color-mix(in srgb,var(--pc) 14%,transparent),transparent)}
+.pav{width:46px;height:46px;flex:none;border-radius:13px;background:var(--pc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
+.pname{font-size:19px;font-weight:800;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psub{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgo{font-size:28px;color:var(--pc);font-weight:300}
+.pbody{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:2px 14px 10px}
+.pm .row{white-space:nowrap;font-size:11.5px;color:var(--mut);margin-bottom:3px}.pm b{color:var(--tx);font-size:12.5px}
+.pfoot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:0 14px 12px}
+.pcount{background:var(--pri);color:#fff;border-radius:999px;min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-weight:800;padding:0 10px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -172,7 +183,7 @@ let STORE_OK=true;
 function storeTest(){try{localStorage.setItem('bl_test','1');STORE_OK=localStorage.getItem('bl_test')==='1';localStorage.removeItem('bl_test')}catch(e){STORE_OK=false}}
 function persist(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}}
 function load(){try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){S=null}if(!S||!Array.isArray(S.projects))S={projects:[]};S.projects.forEach(fix)}
-function save(){try{S.last=V.pid||S.last||null;localStorage.setItem(KEY,JSON.stringify(S))}catch(e){STORE_OK=false;toast('⚠️ Speichern nicht möglich')}}
+function save(){try{S.last=V.pid||S.last||null;if(V.view!=='home'&&P())P().updated=Date.now();localStorage.setItem(KEY,JSON.stringify(S))}catch(e){STORE_OK=false;toast('⚠️ Speichern nicht möglich')}}
 let V={view:'home',pid:null,tool:null,vv:'ist',vt:'daten',af:'offen',sm:'weg',aid:null,tRun:null,tLast:null,lst:'',live:null};
 const P=()=>S.projects.find(p=>p.id===V.pid);
 
@@ -267,12 +278,26 @@ function render(){
 
 /* ===== Startseite & Projekt ===== */
 function projStats(p){const t=p.actions.length,d=p.actions.filter(a=>a.status==='erledigt').length;return{compl:vcomp(p.vsm.ist),total:t,done:d}}
+const PCOL=['#0f6e56','#2563eb','#7c3aed','#d97706','#db2777','#0891b2','#65a30d','#475569'];
+const pcol=p=>{let h=0;for(const c of p.id)h=(h*31+c.charCodeAt(0))>>>0;return PCOL[h%PCOL.length]};
+const ago=t=>{if(!t)return '';const d=(Date.now()-t)/864e5;if(d<1/24)return 'gerade eben';if(d<1)return 'heute';if(d<2)return 'gestern';if(d<7)return `vor ${Math.floor(d)} Tagen`;return new Date(t).toLocaleDateString('de-DE')};
+function projCard(p){
+ const k=projStats(p),c=pcol(p),td=today(),ci=vcalc(p.vsm.ist),sc=vcomp(p.vsm.soll);
+ const openA=p.actions.filter(a=>a.status!=='erledigt').length,late=p.actions.filter(a=>a.status!=='erledigt'&&a.due&&a.due<td).length,openT=(p.talks||[]).filter(t=>t.status==='neu'||t.status==='in Prüfung').length;
+ const mini=(l,v,pc)=>`<div class="pm"><div class="row"><span>${l}</span><b>${v}</b></div>${bar(pc,c)}</div>`;
+ const ini=p.name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+ return `<div class="pcard" style="--pc:${c}" onclick="openP('${p.id}')">
+ <div class="ptop"><div class="pav">${esc(ini)}</div><div style="flex:1;min-width:0"><div class="pname">${esc(p.name)}</div><div class="psub">${p.desc?esc(trunc(p.desc,70)):'Zuletzt bearbeitet '+ago(p.updated||p.created)}</div></div><div class="pgo">›</div></div>
+ <div class="pbody">${mini('Ist',k.compl+' %',k.compl)}${mini('Soll',sc+' %',sc)}${mini('Maßnahmen',k.done+'/'+k.total,pct(k.done,k.total))}</div>
+ <div class="pfoot">${isFinite(ci.invDays)?`<span class="chip">⏳ DLZ ${fmt(ci.invDays,1)} AT</span>`:''}${openA?`<span class="chip">✅ ${openA} offen</span>`:''}${late?`<span class="chip c" style="background:var(--bad)">⚠️ ${late} überfällig</span>`:''}${openT?`<span class="chip">💬 ${openT} Anliegen</span>`:''}${p.muda.obs.length?`<span class="chip">🔍 ${p.muda.obs.length}</span>`:''}${p.desc?`<span class="mut sm" style="margin-left:auto">${ago(p.updated||p.created)}</span>`:''}</div></div>`;
+}
 function homeV(){
- const list=S.projects.slice().sort((a,b)=>b.created-a.created).map(p=>{const k=projStats(p);return `<div class="card proj" onclick="openP('${p.id}')"><div class="row"><b>${esc(p.name)}</b><span class="mut sm">${new Date(p.created).toLocaleDateString('de-DE')}</span></div>${p.desc?`<div class="mut sm">${esc(trunc(p.desc,120))}</div>`:''}<div class="chips"><span class="chip">Wertstrom ${k.compl}%</span><span class="chip">Maßnahmen ${k.done}/${k.total}</span><span class="chip">${p.muda.obs.length} Verschwendungen</span></div></div>`}).join('');
+ const ps=S.projects.slice().sort((a,b)=>(b.updated||b.created)-(a.updated||a.created));
  const warn=STORE_OK?'':`<div class="card" style="border-color:var(--bad);background:#fde2e1;color:#7f1d1d"><b>⚠️ Dieser Browser speichert nichts dauerhaft.</b><div class="sm" style="margin-top:4px">Alles, was du hier anlegst, ist beim Schließen weg. Öffne die App über <b>bup97.github.io/Busch-lean</b> in Safari (nicht im privaten Modus) oder über das Symbol auf dem Home-Bildschirm.</div></div>`;
- return warn+`<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung.</p></section>
- <div class="row gap" style="flex-wrap:nowrap"><input id="np" placeholder="Neues Projekt, z. B. Endmontage" onkeydown="if(event.key==='Enter')addP()"><button class="btn pri" onclick="addP()">Anlegen</button></div>
- <h2>Projekte</h2>${list||'<div class="empty">Noch keine Projekte. Lege oben dein erstes an.</div>'}
+ const add=`<div class="row gap" style="flex-wrap:nowrap;margin-top:12px"><input id="np" placeholder="Neues Projekt, z. B. Endmontage" onkeydown="if(event.key==='Enter')addP()"><button class="btn pri" onclick="addP()">＋ Anlegen</button></div>`;
+ const head=ps.length?`<div class="row" style="margin:6px 2px 12px"><div><div style="font-size:24px;font-weight:800;line-height:1.15">Meine Projekte</div></div><span class="pcount">${ps.length}</span></div>`
+  :`<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung. Lege unten dein erstes Projekt an.</p></section>`;
+ return warn+head+ps.map(projCard).join('')+add+`
  <h2>Mehr</h2><div class="card link row" onclick="go('lib')"><span>📘 Lean-Werkzeuge & Kurzanleitungen</span><span class="mut">›</span></div>
  <div class="card"><b>Datensicherung</b><p class="mut sm" style="margin:4px 0 10px">Die Daten liegen nur auf diesem Gerät. Exportiere regelmäßig eine Sicherung.</p><div class="row gap"><button class="btn sm" onclick="exportData()">⬇︎ Exportieren</button><label class="btn sm">⬆︎ Importieren<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div></div>`;
 }
