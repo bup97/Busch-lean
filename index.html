@@ -82,6 +82,13 @@ button.chip{font:inherit;font-size:13px;padding:5px 12px;cursor:pointer;color:va
 button.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 #printhost{display:none}
 @media print{body>*:not(#printhost){display:none!important}#printhost{display:block!important;background:#fff}#printhost *{-webkit-print-color-adjust:exact;print-color-adjust:exact}.ppage+.ppage{break-before:page;page-break-before:always}.ppage svg{display:block}}
+.kpat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kst{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;cursor:pointer}
+.kst b{width:28px;height:28px;flex:none;border-radius:50%;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.kst.ok b{background:var(--pri);border-color:var(--pri);color:#fff}
+.cdots{display:flex;gap:6px;margin-bottom:12px}.cdots span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;background:var(--card);border:1px solid var(--bd);color:var(--mut)}
+.cdots span.ok{background:var(--pri2);color:var(--pri);border-color:var(--pri2)}.cdots span.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.cq{font-size:22px;font-weight:800;line-height:1.25;margin:6px 0 12px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -205,7 +212,7 @@ const P=()=>S.projects.find(p=>p.id===V.pid);
 
 const newVsm=()=>({customer:{name:'',demand:'',shiftMin:'',shifts:'',breakMin:'',delivery:''},supplier:{name:'',delivery:''},info:{planning:'',custOrder:'',suppOrder:'',control:''},fg:'',steps:[]});
 const newStep=()=>({id:uid(),name:'',ct:'',co:'',avail:'',ops:'',par:'1',lot:'',scrap:'',inv:'',flow:'push'});
-const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},greif:[],greifLive:{taps:[],cycles:0,parts:[]},talks:[],problems:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
+const newProject=name=>({id:uid(),name,desc:'',created:Date.now(),vsm:{ist:newVsm(),soll:newVsm()},muda:{obs:[],laps:[]},spag:{pts:[],st:[],scale:'1',cycles:''},kata:{challenge:'',challengeBy:'',learners:[],tcs:[],sessions:[]},greif:[],greifLive:{taps:[],cycles:0,parts:[]},talks:[],problems:[],ishi:{problem:'',causes:[]},whys:[],audits:[],actions:[],notes:[]});
 function fix(p){const d=newProject(p.name);for(const k in d)if(p[k]==null)p[k]=d[k];if(!p.spag.st)p.spag.st=[];if(!p.muda.laps)p.muda.laps=[];}
 
 function upd(path,val){let o=P();const k=path.split('.');for(let i=0;i<k.length-1;i++)o=o[k[i]];o[k[k.length-1]]=val;save();if(V.live)V.live()}
@@ -219,6 +226,10 @@ function closeM(){$('#modal').classList.add('hidden')}
 
 /* ===== Werkzeuge + Kurzanleitungen ===== */
 const TOOLS={
+kata:{name:'Kata',icon:'🧭',short:'Verbesserungs-Kata als roter Faden: Richtung, Ist-Zustand, Zielzustand und PDCA – mit Coaching-Modus (5 Fragen).',
+ guide:{why:'Die Verbesserungs-Kata (Mike Rother, „Toyota Kata“) ist eine Routine, mit der man sich in kleinen, wissenschaftlichen Schritten auf ein Ziel zubewegt, statt große Lösungen vorab zu planen. Die Coaching-Kata ist die passende Routine für Führungskräfte: Mit fünf Fragen begleitest du Mitarbeiter täglich auf diesem Weg. So wird Verbesserung zur Gewohnheit – und die Mitarbeiter lernen, selbst Probleme zu lösen.',
+ steps:['Richtung verstehen: Die Challenge für die nächsten 6–12 Monate formulieren, z. B. „Einzelstückfluss in der Endmontage im Kundentakt“.','Ist-Zustand erfassen: mit Wertstrom und Werkzeugen – Fakten, Kennzahlen, Ablauf. Mit „Aus Wertstrom übernehmen“ landen die Werte direkt im Zielzustand.','Nächsten Zielzustand festlegen: 1–3 Wochen entfernt, messbar (Prozesskennzahl mit Start- und Zielwert) und mit einem Lernenden.','Hindernisse sammeln (Parkplatz) und immer nur an EINEM arbeiten – markiert mit ★.','In kleinen PDCA-Schritten experimentieren: vorher die Erwartung aufschreiben, danach Ergebnis und Erkenntnis.','Coaching-Zyklus möglichst täglich, ca. 15–20 Minuten am Prozess: „🎓 Coaching-Zyklus starten“ führt durch die 5 Fragen und schreibt Messwerte, Erkenntnisse und den nächsten Schritt automatisch ins Protokoll.'],
+ tip:'Als Coach fragst du – du gibst keine Lösungen vor. Der Lernende soll selbst denken. Der Weg zum Zielzustand ist vorher nicht bekannt; Ungewissheit ist normal und Teil des Lernens.'}},
 vsm:{name:'Wertstrom',icon:'🗺️',short:'Material- und Informationsfluss vom Lieferanten bis zum Kunden – Ist- und Soll-Zustand mit Kennzahlen.',
  guide:{why:'Die Wertstromanalyse zeigt den gesamten Fluss einer Produktfamilie vom Lieferanten bis zum Kunden. Sie macht Bestände, Wartezeiten und Engpässe sichtbar und zeigt, wie viel der Durchlaufzeit wirklich wertschöpfend ist. Im Wertstromdesign (Soll) planst du daraus den verbesserten Fluss.',
  steps:['Produktfamilie festlegen: Produkte mit ähnlichen Prozessschritten zusammenfassen.','Beim Kunden starten: Tagesbedarf, Schichtmodell und Pausen eintragen – daraus ergibt sich der Kundentakt.','Den Prozess vor Ort ablaufen (am besten vom Versand rückwärts) und jeden Schritt mit Zykluszeit, Rüstzeit, Verfügbarkeit, Mitarbeitern, parallelen Plätzen und Losgröße erfassen.','Bestände vor jedem Schritt und im Fertigwarenlager zählen – die App rechnet sie in Reichweite (Arbeitstage) um.','Informationsfluss ergänzen: Wie kommen Kundenbestellung, Planung und Lieferantenabruf zustande? Wie wird zwischen den Schritten gesteuert (Push, FIFO, Supermarkt)?','In der Checkliste prüfen, ob alles vollständig ist, dann Karte und Kennzahlen auswerten.','Soll-Zustand anlegen („aus Ist übernehmen“) und Verbesserungen eintragen. Der Vergleich Ist ↔ Soll zeigt den Fortschritt, die Umsetzung läuft über den Maßnahmenplan.'],
@@ -267,7 +278,7 @@ notes:{name:'Notizen',icon:'📝',short:'Beobachtungen, Gesprächsnotizen und Id
  guide:{why:'Hier sammelst du alles, was nicht in ein Werkzeug passt oder was du schnell festhalten willst.',
  steps:['Notiz schreiben und optional einem Werkzeug zuordnen.','Zugeordnete Notizen erscheinen auch direkt im jeweiligen Werkzeug.'],tip:''}}
 };
-const ORDER=['vsm','muda','time','spag','greif','ishi','why','s5','talk','prob','act','notes'];
+const ORDER=['kata','vsm','muda','time','spag','greif','ishi','why','s5','talk','prob','act','notes'];
 
 const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
 const CAT={ws:['Wertschöpfend','var(--va)'],nws:['Notwendig','var(--nva)'],v:['Verschwendung','var(--w)']};
@@ -282,7 +293,7 @@ const FIVE_S=[['Sortieren',['Nur benötigte Materialien und Werkzeuge am Platz',
 /* ===== Navigation ===== */
 function go(v){V.view=v;render();window.scrollTo(0,0)}
 function openP(id){V.pid=id;save();go('project')}
-function openT(id,keep){if(!keep)V.prid=null;V.tool=id;go('tool')}
+function openT(id,keep){if(!keep){V.prid=null;V.tcid=null;V.coach=null}V.tool=id;go('tool')}
 function guide(id){const t=TOOLS[id],g=t.guide;modal(`<h2>${t.icon} ${t.name}</h2><h3>Wofür?</h3><p>${g.why}</p><h3>So geht's</h3><ol>${g.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}<button class="btn pri wide" onclick="closeM()">Verstanden</button>`)}
 const intro=id=>`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
 function hdr(title,back,tool){return `${back?`<button class="back" onclick="${back}">‹</button>`:''}<h1>${title}</h1>${tool?`<button class="info" onclick="guide('${tool}')">ⓘ Anleitung</button>`:''}`}
@@ -293,7 +304,7 @@ function render(){
  if(V.view==='home'){h.innerHTML=hdr('<span class="logo">Busch</span> LEAN');a.innerHTML=homeV()}
  else if(V.view==='lib'){h.innerHTML=hdr('Werkzeuge & Anleitungen',"go('home')");a.innerHTML=libV()}
  else if(V.view==='project'){h.innerHTML=hdr(esc(P().name),"go('home')");a.innerHTML=projectV(P())}
- else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(t.icon+' '+t.name,V.tool==='prob'&&V.prid?"V.prid=null;render();scrollTo(0,0)":"go('project')",V.tool);a.innerHTML=R[V.tool](p)}
+ else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(V.coach?'🎓 Coaching-Kata':t.icon+' '+t.name,toolBack(),V.coach?null:V.tool);a.innerHTML=R[V.tool](p)}
 }
 
 /* ===== Startseite & Projekt ===== */
@@ -327,14 +338,14 @@ function delP(){const p=P();if(!confirm(`Projekt „${p.name}“ mit allen Daten
 function exportData(){const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`busch-lean-sicherung-${today()}.json`;document.body.appendChild(a);a.click();a.remove()}
 function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.projects))throw 0;if(!confirm('Vorhandene Daten durch die Sicherung ersetzen?'))return;S=d;S.projects.forEach(fix);save();render();toast('Sicherung importiert')}catch(e){alert('Datei ist keine gültige Busch-LEAN-Sicherung.')}};r.readAsText(f)}
 
-const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greifLive.taps.length} Griffe · ${p.greifLive.cycles} Zyklen`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
+const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greifLive.taps.length} Griffe · ${p.greifLive.cycles} Zyklen`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,kata:p=>{const a=p.kata.tcs.filter(t=>t.status==='aktiv'),d=a.filter(t=>t.nextCoach&&t.nextCoach<=today()).length;return d?`🎓 ${d} Coaching fällig`:`${a.length} Zielzustand${a.length===1?'':'e'} aktiv`},prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
 
 function projectV(p){
  const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
  const dlzRed=isFinite(ci.invDays)&&ci.invDays>0&&isFinite(cs.invDays)&&cs.invDays>0?(1-cs.invDays/ci.invDays)*100:NaN;
  const kp=(l,a,b,u,d)=>`<div class="kpi"><span>${l}</span><b>${a}<small> ${u}</small></b><i>Soll: ${b} ${u}</i></div>`;
  return `<div class="card">${fld('Projektname','name',p.name)}<div style="height:8px"></div>${area('Beschreibung / Ziel','desc',p.desc,'z. B. Durchlaufzeit Endmontage um 30 % senken',2)}</div>
- <h2>Ergebniskennzahlen (Ist)</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
+ ${kataCard(p)}<h2>Ergebniskennzahlen (Ist)</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
  <h2>Fortschritt</h2><div class="card">
   ${progRow('Ist-Aufnahme vollständig',k.compl+' %',k.compl)}
   ${progRow('Soll-Zustand definiert',sollC+' %',sollC)}
@@ -804,6 +815,14 @@ async function exportXlsx(){
   const cnt=TALK_TOPIC.map(t=>[t,p.talks.filter(x=>x.topic===t&&x.kind!=='positiv').length,'#2563eb']).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]);
   if(cnt.length){xSub(ws,'Ideen & Ärgernisse nach Thema');await xImg(ws,wb,hbar(cnt,''),620)}
   xTable(ws,['Datum','Mitarbeiter','Station','Art','Thema','Anliegen','Zitat','Belastung','Status','Rückmeldung'],p.talks.map(t=>[dDE(t.date),t.anon?'anonym':t.person,t.station,TALK_KIND[t.kind][0],t.topic,t.text,t.quote,t.kind==='positiv'?null:t.level,t.status,t.kind==='positiv'?'':t.feedback?dDE(t.fbDate):'offen']))}
+ if(p.kata.challenge||p.kata.tcs.length){const k=p.kata;ws=newWs(wb,'Kata',[22,40,40,40,40]);xTitle(ws,'Verbesserungs-Kata',p.name);
+  xTable(ws,['','Richtung / Challenge','Zieltermin'],[['',k.challenge,k.challengeBy?dDE(k.challengeBy+'T12:00'):'']]);
+  for(const tc of k.tcs){const on=id=>(tc.obstacles.find(o=>o.id===id)||{}).text||'';xSub(ws,`🧭 Zielzustand: ${tc.title} (${tc.status}) – bis ${dDE(tc.by+'T12:00')}${tc.learner?' – Lernender: '+tc.learner:''}`);
+   xTable(ws,['','Ist-Zustand','Zielzustand'],[['',tc.current,tc.target]]);
+   if(tc.metrics.length){xTable(ws,['Kennzahl','Einheit','Start','Ziel','Aktuell'],tc.metrics.map(m=>[m.name,m.unit,nn(m.start),nn(m.target),rd(mLast(tc,m),2)]));for(const m of tc.metrics){const rc=runChart(tc,m);if(rc){xSub(ws,'Verlauf: '+m.name);await xImg(ws,wb,rc,420)}}}
+   if(tc.obstacles.length)xTable(ws,['Hindernis','Status','Aktuell'],tc.obstacles.map(o=>[o.text,o.status,o.focus?'★':'']));
+   if(tc.exps.length)xTable(ws,['Datum','Hindernis','Schritt','Erwartung','Ergebnis / Gelernt'],tc.exps.slice().sort((a,b)=>a.t-b.t).map(e=>[dDE(e.date+'T12:00'),on(e.obstacle),e.step,e.expect,[e.result,e.learned].filter(Boolean).join(' → ')]));
+   const ss=k.sessions.filter(x=>x.tcId===tc.id).sort((a,b)=>a.t-b.t);if(ss.length)xTable(ws,['Coaching am','Lernender','Gelernt','Hindernis','Nächster Schritt'],ss.map(x=>[new Date(x.t).toLocaleDateString('de-DE'),x.learner,x.answers.learned||'',x.answers.obstacleText||'',x.answers.step||'']))}}
  if(p.problems.length){ws=newWs(wb,'Probleme',[40,60,16,18,16,14,12]);xTitle(ws,'Probleme & Maßnahmen',p.name);
   xTable(ws,['Problem','Beschreibung','Station','Quelle','Status','Erfasst','Erledigt'],p.problems.map(pr=>{const as=p.actions.filter(a=>a.pid===pr.id);return[pr.title,pr.desc,pr.station,pr.src,pr.status,dDE(pr.created),`${as.filter(a=>a.status==='erledigt').length}/${as.length}`]}));
   for(const pr of p.problems){const as=p.actions.filter(a=>a.pid===pr.id);xSub(ws,`🎯 ${pr.title} – ${pr.status}`);if(as.length)await xImg(ws,wb,gantt(pr,as),560);xTable(ws,['Datum','Ereignis'],probEvents(p,pr).map(e=>[e.plan?dDE(e.t):new Date(e.t).toLocaleString('de-DE'),(e.plan?(e.late?'ÜBERFÄLLIG – ':'Geplant – '):'')+e.txt]))}}
@@ -959,7 +978,128 @@ function aiCopy(open){const q=($('#aiq').value||'').trim();V.aiq=q;const txt=aiP
  const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();else{modal(`<h2>Text kopieren</h2><p class="mut sm">Automatisches Kopieren ging nicht – Text markieren und kopieren:</p><textarea rows="12" readonly onfocus="this.select()">${esc(txt)}</textarea><button class="btn wide" onclick="closeM()">Schließen</button>`)}};
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,fallback);else fallback()}
 
-const R={prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
+/* ===== Verbesserungs-Kata & Coaching-Kata ===== */
+const OST=['offen','in Arbeit','beseitigt','geparkt'],OCLS={'offen':'offen','in Arbeit':'arbeit','beseitigt':'erledigt','geparkt':'abgelehnt'};
+const TCST=['aktiv','erreicht','abgebrochen'];
+const K=()=>P().kata;
+const curTc=()=>K().tcs.find(x=>x.id===V.tcid);
+const tcById=id=>K().tcs.find(x=>x.id===id);
+const mLast=(tc,m)=>{const ms=tc.meas.filter(x=>x.mid===m.id).sort((a,b)=>a.t-b.t);return ms.length?ms[ms.length-1].val:num(m.start)};
+const mProg=(tc,m)=>{const s=num(m.start),t=num(m.target),c=mLast(tc,m);if(!isFinite(s)||!isFinite(t)||!isFinite(c)||s===t)return NaN;return Math.max(0,Math.min(100,(c-s)/(t-s)*100))};
+const openExp=tc=>tc.exps.filter(e=>!e.done).sort((a,b)=>b.t-a.t)[0];
+function toolBack(){if(V.tool==='prob'&&V.prid)return "V.prid=null;render();scrollTo(0,0)";if(V.tool==='kata'&&(V.coach||V.tcid))return "kataBack()";return "go('project')"}
+function kataBack(){if(V.coach){if(!confirm('Coaching-Zyklus abbrechen? Die Eingaben gehen verloren.'))return;V.coach=null}else V.tcid=null;render();scrollTo(0,0)}
+function kAddLearner(){const n=(prompt('Name des Lernenden (Mitarbeiter)')||'').trim();if(!n)return;const k=K();if(!k.learners.includes(n))k.learners.push(n);save();render()}
+function kDelLearner(i){const k=K();if(!confirm(`„${k.learners[i]}“ aus der Liste entfernen?`))return;k.learners.splice(i,1);save();render()}
+function kNewTc(){const t=$('#ktc').value.trim();if(!t){$('#ktc').focus();return}const k=K(),by=new Date(Date.now()+14*864e5).toISOString().slice(0,10);
+ const tc={id:uid(),title:t,learner:$('#ktl').value,by,status:'aktiv',current:'',target:'',metrics:[],meas:[],obstacles:[],exps:[],nextCoach:'',created:Date.now()};k.tcs.push(tc);V.tcid=tc.id;save();render();scrollTo(0,0)}
+function kOpenTc(id){V.tcid=id;render();scrollTo(0,0)}
+function kDelTc(){if(!confirm('Zielzustand mit allen Experimenten löschen?'))return;const k=K();k.tcs=k.tcs.filter(x=>x.id!==V.tcid);V.tcid=null;save();render()}
+function kSetSt(st){curTc().status=st;save();render()}
+function kIstFromVsm(){const tc=curTc(),c=vcalc(P().vsm.ist);const t=`Aus Wertstrom (${dDE(Date.now())}): Kundentakt ${fmt(c.takt,1)} s · Durchlaufzeit ${fmt(c.invDays,1)} AT · Bearbeitungszeit ${fmt(c.bz,0)} s · Flussgrad ${fmt(c.flow,2)} % · Bestand ${fmt(c.invPcs,0)} Stk${c.bottleneck?` · Engpass ${c.bottleneck.name||'–'} (${fmt(c.bottleneck.eff,1)} s)`:''}`;tc.current=(tc.current?tc.current+'\n':'')+t;save();render();toast('Ist-Zustand übernommen')}
+function kPresets(){const p=P(),c=vcalc(p.vsm.ist),g=p.greifLive,gpc=g.cycles?g.taps.filter(t=>t.cycle<g.cycles).length/g.cycles:NaN;
+ return[['Durchlaufzeit','AT',rd(c.invDays,1),'Ziel kleiner'],['Engpass-Zykluszeit','s',rd(c.bottleneck?.eff,0),''],['Bestand','Stk',rd(c.invPcs,0),''],['Flussgrad','%',rd(c.flow,2),''],['Zykluszeit','s',null,''],['Ausschuss / Nacharbeit','%',null,''],['Griffe je Zyklus','',rd(gpc,1),''],['Stück je Stunde','Stk/h',null,'']]}
+function kAddMetric(i){const tc=curTc();let m;if(i==null){const n=$('#kmn').value.trim();if(!n){$('#kmn').focus();return}m={id:uid(),name:n,unit:$('#kmu').value.trim(),start:$('#kms').value.trim(),target:$('#kmt').value.trim()}}
+ else{const pr=kPresets()[i];m={id:uid(),name:pr[0],unit:pr[1],start:pr[2]==null?'':String(pr[2]).replace('.',','),target:''}}tc.metrics.push(m);save();render();toast('Kennzahl hinzugefügt – Zielwert eintragen')}
+function kDelMetric(id){if(!confirm('Kennzahl mit allen Messwerten löschen?'))return;const tc=curTc();tc.metrics=tc.metrics.filter(m=>m.id!==id);tc.meas=tc.meas.filter(x=>x.mid!==id);save();render()}
+function kAddMeas(id){const e=document.getElementById('mv_'+id),v=num(e.value);if(!isFinite(v)){e.focus();toast('Bitte eine Zahl eintragen');return}curTc().meas.push({t:Date.now(),date:today(),mid:id,val:v});save();render();toast('Messwert gespeichert')}
+function kDelMeas(t){const tc=curTc();tc.meas=tc.meas.filter(x=>x.t!==t);save();render()}
+function kAddObs(src){const e=document.getElementById(src||'kob'),t=e.value.trim();if(!t){e.focus();return}const tc=tcById(V.coach?V.coach.tcId:V.tcid);const o={id:uid(),text:t,status:'offen',focus:false,t:Date.now()};tc.obstacles.push(o);if(V.coach)V.coach.a.focus=V.coach.a.focus||o.id;save();render()}
+function kObsSt(id){const o=curTc().obstacles.find(x=>x.id===id);o.status=OST[(OST.indexOf(o.status)+1)%OST.length];if(o.status!=='in Arbeit')o.focus=false;save();render()}
+function kObsFocus(id){const tc=curTc();tc.obstacles.forEach(o=>o.focus=o.id===id?!o.focus:false);const o=tc.obstacles.find(x=>x.id===id);if(o.focus&&o.status==='offen')o.status='in Arbeit';save();render()}
+function kDelObs(id){if(!confirm('Hindernis löschen?'))return;const tc=curTc();tc.obstacles=tc.obstacles.filter(o=>o.id!==id);save();render()}
+function kAddExp(){const s=$('#kes').value.trim();if(!s){$('#kes').focus();return}const tc=curTc(),f=tc.obstacles.find(o=>o.focus);tc.exps.push({id:uid(),date:today(),obstacle:f?f.id:'',step:s,expect:$('#kee').value.trim(),result:'',learned:'',done:false,t:Date.now()});save();render()}
+function kDelExp(id){if(!confirm('Experiment löschen?'))return;const tc=curTc();tc.exps=tc.exps.filter(e=>e.id!==id);save();render()}
+function kExpDone(id){const e=curTc().exps.find(x=>x.id===id);e.done=!e.done;save();render()}
+function runChart(tc,m){
+ const ms=tc.meas.filter(x=>x.mid===m.id).sort((a,b)=>a.t-b.t),pts=[{v:num(m.start),l:'Start'},...ms.map(x=>({v:x.val,l:new Date(x.date+'T12:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}))].filter(q=>isFinite(q.v));
+ if(!pts.length)return '';const tg=num(m.target),vals=pts.map(q=>q.v).concat(isFinite(tg)?[tg]:[]);let mn=Math.min(...vals),mx=Math.max(...vals);if(mn===mx){mn-=1;mx+=1}const pd=(mx-mn)*.18;mn-=pd;mx+=pd;
+ const W=360,H=150,L=40,R=14,B=124,T=14,n=pts.length,x=i=>n===1?(L+W-R)/2:L+i*(W-L-R)/(n-1),y=v=>B-(v-mn)/(mx-mn)*(B-T);
+ let s=`<line x1="${L}" x2="${L}" y1="${T-6}" y2="${B}" class="ax"/><line x1="${L}" x2="${W-R}" y1="${B}" y2="${B}" class="ax"/><text x="${L-5}" y="${y(mx-pd)+4}" text-anchor="end" class="sm">${fmt(mx-pd,1)}</text><text x="${L-5}" y="${y(mn+pd)+4}" text-anchor="end" class="sm">${fmt(mn+pd,1)}</text>`;
+ if(isFinite(tg))s+=`<line x1="${L}" x2="${W-R}" y1="${y(tg)}" y2="${y(tg)}" style="stroke:#16a34a;stroke-width:2;stroke-dasharray:6 4"/><text x="${W-R}" y="${y(tg)-5}" text-anchor="end" style="fill:#16a34a;font-weight:700;font-size:10px">Ziel ${fmt(tg,1)}</text>`;
+ if(n>1)s+=`<polyline points="${pts.map((q,i)=>x(i)+','+y(q.v)).join(' ')}" style="fill:none;stroke:#0f6e56;stroke-width:2.2"/>`;
+ pts.forEach((q,i)=>{s+=`<circle cx="${x(i)}" cy="${y(q.v)}" r="4" style="fill:${i?'#0f6e56':'#94a3b8'}"/>`;if(n<=12)s+=`<text x="${x(i)}" y="${y(q.v)-8}" text-anchor="middle" class="sm">${fmt(q.v,1)}</text>`;if(i===0||i===n-1||n<=7)s+=`<text x="${x(i)}" y="${B+14}" text-anchor="middle" class="sm">${q.l}</text>`});
+ return `<svg viewBox="0 0 ${W} ${H}" class="chart" style="width:100%">${s}</svg>`}
+function kataPattern(p){const k=p.kata,act=k.tcs.some(t=>t.status==='aktiv'),ex=k.tcs.some(t=>t.exps.length),ic=vcomp(p.vsm.ist);
+ const st=[['1','Richtung verstehen','Challenge',!!k.challenge.trim(),"document.getElementById('kch').focus()"],['2','Ist-Zustand erfassen',`Wertstrom ${ic} %`,ic>=50,"openT('vsm')"],['3','Nächster Zielzustand','1–3 Wochen',act,"document.getElementById('ktc')&&document.getElementById('ktc').focus()"],['4','PDCA-Experimente','kleine Schritte',ex,'']];
+ return `<div class="kpat">${st.map(s=>`<div class="kst${s[3]?' ok':''}" onclick="${s[4]}"><b>${s[3]?'✓':s[0]}</b><div><div style="font-weight:700">${s[1]}</div><div class="mut sm">${s[2]}</div></div></div>`).join('')}</div>`}
+function kataCard(p){const k=p.kata,act=k.tcs.filter(t=>t.status==='aktiv');
+ if(!k.challenge.trim()&&!k.tcs.length)return `<div class="card link" onclick="openT('kata')" style="border-left:5px solid var(--pri)"><div class="row"><b>🧭 Mit der Verbesserungs-Kata starten</b><span class="lnk">›</span></div><div class="mut sm">Richtung festlegen, Ist-Zustand aus dem Wertstrom, Zielzustand definieren und in kleinen Schritten mit dem Team experimentieren.</div></div>`;
+ return `<div class="card link" onclick="openT('kata')" style="border-left:5px solid var(--pri)"><div class="row"><span class="mut sm">🧭 Verbesserungs-Kata · Richtung</span><span class="lnk">›</span></div><div style="font-weight:800;font-size:16px;margin:2px 0 8px">${esc(k.challenge||'Challenge noch nicht formuliert')}</div>
+ ${act.map(tc=>{const m=tc.metrics[0],pg=m?mProg(tc,m):NaN,due=tc.nextCoach&&tc.nextCoach<=today();return `<div style="margin-top:6px"><div class="row sm"><span><b>${esc(tc.title)}</b>${tc.learner?' · 🎓 '+esc(tc.learner):''}</span><span class="mut">bis ${dDE(tc.by+'T12:00')}</span></div>${m?`<div class="row sm mut"><span>${esc(m.name)}: ${fmt(mLast(tc,m),1)} → Ziel ${esc(m.target||'?')} ${esc(m.unit)}</span><span>${isFinite(pg)?fmt(pg,0)+' %':''}</span></div>${bar(pg)}`:''}${due?'<div class="sm over" style="margin-top:3px">🎓 Coaching fällig</div>':''}</div>`}).join('')||'<div class="mut sm">Kein aktiver Zielzustand</div>'}</div>`}
+function kataV(p){
+ if(V.coach&&tcById(V.coach.tcId))return coachV(p,tcById(V.coach.tcId));V.coach=null;
+ const tc=curTc();if(tc)return tcDetail(p,tc);V.tcid=null;
+ const k=p.kata,list=k.tcs.slice().sort((a,b)=>TCST.indexOf(a.status)-TCST.indexOf(b.status)||b.created-a.created),due=k.tcs.filter(t=>t.status==='aktiv'&&t.nextCoach&&t.nextCoach<=today());
+ return intro('kata')+kataPattern(p)+(due.length?`<div class="intro" style="background:#fef3c7;color:#92400e"><span>🎓 Coaching fällig: ${due.map(t=>esc(t.title)+(t.learner?' ('+esc(t.learner)+')':'')).join(', ')}</span><button class="lnk" onclick="kStartCoach('${due[0].id}')">Starten</button></div>`:'')+
+ `<h2>1 · Richtung / Challenge</h2><div class="card"><label class="f"><span>Wo wollen wir in 6–12 Monaten hin?</span><textarea id="kch" rows="2" placeholder="z. B. Einzelstückfluss in der Endmontage im Kundentakt, DLZ unter 2 Tagen" oninput="upd('kata.challenge',this.value)">${esc(k.challenge)}</textarea></label><div style="margin-top:8px">${fld('Zieltermin','kata.challengeBy',k.challengeBy,{type:'date'})}</div></div>
+ <h2>2 · Ist-Zustand</h2><div class="card row"><span class="sm">Ist-Zustand im Wertstrom erfasst: <b>${vcomp(p.vsm.ist)} %</b> · DLZ ${fmt(vcalc(p.vsm.ist).invDays,1)} AT</span><button class="btn sm" onclick="openT('vsm')">Wertstrom ›</button></div>
+ <h2>3 · Zielzustände</h2>${list.map(tc=>{const m=tc.metrics[0],pg=m?mProg(tc,m):NaN,ob=tc.obstacles.find(o=>o.focus);return `<div class="card link" onclick="kOpenTc('${tc.id}')"><div class="row"><b style="font-size:16px">${esc(tc.title)}</b><span class="st ${tc.status==='aktiv'?'arbeit':tc.status==='erreicht'?'erledigt':'abgelehnt'}">${tc.status}</span></div>
+  <div class="mut sm" style="margin:2px 0 6px">${tc.learner?'🎓 '+esc(tc.learner)+' · ':''}bis ${dDE(tc.by+'T12:00')} · ${tc.exps.length} Experimente · ${tc.obstacles.filter(o=>o.status!=='beseitigt').length} Hindernisse offen</div>
+  ${m?progRow(`${esc(m.name)}: ${fmt(mLast(tc,m),1)} → ${esc(m.target||'?')} ${esc(m.unit)}`,isFinite(pg)?fmt(pg,0)+' %':'–',pg):'<div class="mut sm">Noch keine Kennzahl festgelegt</div>'}
+  ${ob?`<div class="sm" style="margin-top:4px">🎯 Aktuelles Hindernis: ${esc(ob.text)}</div>`:''}${tc.nextCoach?`<div class="sm ${tc.nextCoach<=today()?'over':'mut'}" style="margin-top:2px">🎓 Nächstes Coaching: ${dDE(tc.nextCoach+'T12:00')}</div>`:''}</div>`}).join('')||'<div class="empty">Noch kein Zielzustand. Leg unten den nächsten Zielzustand an – 1 bis 3 Wochen entfernt.</div>'}
+ <div class="card"><input id="ktc" placeholder="Nächster Zielzustand, z. B. Endmontage im Takt 450 s"><div class="row" style="margin-top:8px;flex-wrap:nowrap"><select id="ktl">${opt('','Lernender (optional)','')}${k.learners.map(l=>opt(l,'🎓 '+l,'')).join('')}</select><button class="btn pri" onclick="kNewTc()">＋ Anlegen</button></div></div>
+ <h2>Lernende (Coaching)</h2><div class="card"><div class="chips" style="margin:0">${k.learners.map((l,i)=>`<span class="chip">🎓 ${esc(l)} <button class="ib" style="padding:0 2px;font-size:12px" onclick="kDelLearner(${i})">✕</button></span>`).join('')}<button class="chip" onclick="kAddLearner()">＋ Lernender</button></div><p class="mut sm" style="margin:8px 0 0">Namen nur mit Einverständnis – oder ein Kürzel verwenden.</p></div>
+ ${k.sessions.length?`<h2>Letzte Coaching-Zyklen</h2>${k.sessions.slice().sort((a,b)=>b.t-a.t).slice(0,5).map(sessCard).join('')}`:''}`+notesBox(p,'kata');
+}
+function sessCard(s){const tc=tcById(s.tcId),a=s.answers||{};return `<div class="card"><div class="row"><b class="sm">🎓 ${esc(s.learner||'–')} · ${tc?esc(tc.title):'(gelöscht)'}</b><span class="mut sm">${new Date(s.t).toLocaleDateString('de-DE')}</span></div>
+ ${a.learned?`<div class="sm" style="margin-top:4px"><b>Gelernt:</b> ${esc(a.learned)}</div>`:''}${a.obstacleText?`<div class="sm"><b>Hindernis:</b> ${esc(a.obstacleText)}</div>`:''}${a.step?`<div class="sm"><b>Nächster Schritt:</b> ${esc(a.step)}${a.expect?' – <i>erwartet: '+esc(a.expect)+'</i>':''}</div>`:''}${a.when?`<div class="mut sm">Nächstes Coaching: ${dDE(a.when+'T12:00')}</div>`:''}</div>`}
+function tcDetail(p,tc){
+ const k=p.kata,i=k.tcs.indexOf(tc),q=`kata.tcs.${i}`,days=Math.ceil((new Date(tc.by+'T12:00')-Date.now())/864e5),ob=tc.obstacles.find(o=>o.focus),obName=id=>(tc.obstacles.find(o=>o.id===id)||{}).text||'';
+ const metrics=tc.metrics.map((m,j)=>{const pg=mProg(tc,m),ms=tc.meas.filter(x=>x.mid===m.id).sort((a,b)=>b.t-a.t);return `<div class="card"><div class="row"><b>${esc(m.name)}${m.unit?' <span class="mut sm">('+esc(m.unit)+')</span>':''}</b><button class="ib" onclick="kDelMetric('${m.id}')">✕</button></div>
+  <div class="grid3" style="margin-top:6px">${fld('Start',`${q}.metrics.${j}.start`,m.start,{num:1})}${fld('Ziel',`${q}.metrics.${j}.target`,m.target,{num:1})}<label class="f"><span>Aktuell</span><input value="${fmt(mLast(tc,m),2)}" disabled></label></div>
+  <div style="margin-top:8px">${progRow('Fortschritt zum Ziel',isFinite(pg)?fmt(pg,0)+' %':'–',pg)}</div>${runChart(tc,m)}
+  <div class="row" style="margin-top:6px;flex-wrap:nowrap"><input id="mv_${m.id}" inputmode="decimal" placeholder="Neuer Messwert (heute)"><button class="btn sm" onclick="kAddMeas('${m.id}')">＋ Messen</button></div>
+  ${ms.length?`<details style="margin-top:6px"><summary class="sm mut">${ms.length} Messwerte</summary>${ms.map(x=>`<div class="row sm" style="padding:3px 0"><span>${dDE(x.date+'T12:00')}</span><span><b>${fmt(x.val,2)}</b> <button class="ib" onclick="kDelMeas(${x.t})">✕</button></span></div>`).join('')}</details>`:''}</div>`}).join('');
+ return `<button class="btn pri wide" style="margin:0 0 12px;padding:14px;font-size:16px" onclick="kStartCoach('${tc.id}')">🎓 Coaching-Zyklus starten (5 Fragen)</button>
+ <div class="card">${fld('Zielzustand',`${q}.title`,tc.title)}<div class="grid2" style="margin-top:8px"><label class="f"><span>Lernender</span><select onchange="upd('${q}.learner',this.value)">${opt('','–',tc.learner)}${k.learners.map(l=>opt(l,l,tc.learner)).join('')}</select></label>${fld('Erreichen bis',`${q}.by`,tc.by,{type:'date'})}</div>
+ <div class="mut sm" style="margin-top:6px">${tc.status==='aktiv'?(days>=0?`Noch ${days} Tage`:`<span class="over">${-days} Tage über Termin</span>`):''}${tc.nextCoach?' · Nächstes Coaching: '+dDE(tc.nextCoach+'T12:00'):''}</div></div>
+ <div class="seg">${TCST.map(st=>`<button class="${tc.status===st?'on':''}" onclick="kSetSt('${st}')">${st==='erreicht'?'🏁 ':''}${st}</button>`).join('')}</div>
+ <h2>Prozesskennzahlen</h2>${metrics||'<div class="empty sm">Woran misst du, ob der Zielzustand erreicht ist? Wähle unten eine Kennzahl.</div>'}
+ <div class="card"><div class="sm mut" style="margin-bottom:6px">Schnell hinzufügen (Startwert aus dem Wertstrom):</div><div class="chips" style="margin:0">${kPresets().map((pr,j)=>`<button class="chip" onclick="kAddMetric(${j})">${pr[0]}${pr[2]!=null?' · '+fmt(pr[2],1):''}</button>`).join('')}</div>
+ <details style="margin-top:8px"><summary class="sm">Eigene Kennzahl</summary><div class="grid2" style="margin-top:8px"><input id="kmn" placeholder="Name"><input id="kmu" placeholder="Einheit"><input id="kms" inputmode="decimal" placeholder="Startwert"><input id="kmt" inputmode="decimal" placeholder="Zielwert"></div><button class="btn wide" onclick="kAddMetric()">＋ Kennzahl</button></details></div>
+ <h2>Ist-Zustand & Zielzustand</h2><div class="card">${area('Ist-Zustand (Fakten, Ablauf, Kennzahlen)',`${q}.current`,tc.current,'Wie läuft der Prozess heute?',3)}<button class="btn sm" style="margin-top:6px" onclick="kIstFromVsm()">⤵︎ Aus Wertstrom übernehmen</button>
+ <div style="height:10px"></div>${area('Zielzustand (gewünschter Ablauf / Muster)',`${q}.target`,tc.target,'Wie soll der Prozess am Zieltermin laufen? z. B. Jeder Zyklus in 450 s ±10 %, Material im Greifraum A',3)}</div>
+ <h2>Hindernisse (Parkplatz)</h2><div class="card"><div class="row" style="flex-wrap:nowrap"><input id="kob" placeholder="Neues Hindernis" onkeydown="if(event.key==='Enter')kAddObs()"><button class="btn sm pri" onclick="kAddObs()">＋</button></div>
+ ${tc.obstacles.map(o=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--bd)"><button class="ib" title="Aktuelles Hindernis" style="font-size:18px;color:${o.focus?'var(--warn)':'var(--mut)'}" onclick="kObsFocus('${o.id}')">${o.focus?'★':'☆'}</button><span style="flex:1;${o.status==='beseitigt'?'text-decoration:line-through;opacity:.6':''}${o.focus?';font-weight:700':''}">${esc(o.text)}</span><button class="st ${OCLS[o.status]}" onclick="kObsSt('${o.id}')">${o.status}</button><button class="ib" onclick="kDelObs('${o.id}')">✕</button></div>`).join('')}
+ <p class="mut sm" style="margin:8px 0 0">★ = Hindernis, an dem gerade gearbeitet wird – immer nur eins. Status antippen zum Weiterschalten.</p></div>
+ <h2>PDCA-Experimente</h2>${tc.exps.slice().sort((a,b)=>b.t-a.t).map(e=>{const j=tc.exps.indexOf(e),eq=`${q}.exps.${j}`;return `<div class="card"><div class="row"><span class="mut sm">${dDE(e.date+'T12:00')}${e.obstacle?' · 🎯 '+esc(trunc(obName(e.obstacle),40)):''}</span><span><button class="btn sm${e.done?' on':''}" onclick="kExpDone('${e.id}')">${e.done?'✓ ausgewertet':'offen'}</button><button class="ib" onclick="kDelExp('${e.id}')">✕</button></span></div>
+  <div class="grid2" style="margin-top:6px">${fld('Schritt (Plan/Do)',`${eq}.step`,e.step,{cls:'full'})}${fld('Erwartung',`${eq}.expect`,e.expect,{cls:'full'})}${fld('Was ist passiert? (Check)',`${eq}.result`,e.result,{cls:'full'})}${fld('Was gelernt? (Act)',`${eq}.learned`,e.learned,{cls:'full'})}</div></div>`}).join('')||'<div class="empty sm">Noch keine Experimente – am einfachsten über den Coaching-Zyklus.</div>'}
+ <details class="card"><summary class="sm">Experiment manuell eintragen</summary><input id="kes" style="margin-top:8px" placeholder="Nächster Schritt"><input id="kee" style="margin-top:8px" placeholder="Was erwartest du?"><button class="btn wide" onclick="kAddExp()">＋ Experiment</button></details>
+ ${k.sessions.some(s=>s.tcId===tc.id)?`<h2>Coaching-Protokoll</h2>${k.sessions.filter(s=>s.tcId===tc.id).sort((a,b)=>b.t-a.t).map(sessCard).join('')}`:''}
+ <button class="btn del sm" style="margin-top:10px" onclick="kDelTc()">Zielzustand löschen</button>`;
+}
+/* --- Coaching-Kata: die 5 Fragen --- */
+const CQ=[{k:'tz',n:'1',q:'Was ist der Zielzustand?',h:'Der Lernende beschreibt den Zielzustand in eigenen Worten – nicht ablesen lassen. Was ist die Zielkennzahl, wie soll der Ablauf aussehen?'},
+ {k:'ist',n:'2',q:'Wie ist der Ist-Zustand jetzt?',h:'Fakten und Daten statt Meinungen. Wenn möglich direkt am Prozess messen und die aktuellen Werte eintragen.'},
+ {k:'refl',n:'↺',q:'Rückblick auf den letzten Schritt',h:'Was war dein letzter Schritt? Was hast du erwartet? Was ist tatsächlich passiert? Was hast du gelernt?'},
+ {k:'obs',n:'3',q:'Welche Hindernisse hindern dich daran, den Zielzustand zu erreichen? An welchem arbeitest du jetzt?',h:'Immer nur EIN Hindernis gleichzeitig. Neue Hindernisse kommen auf den Parkplatz.'},
+ {k:'next',n:'4',q:'Was ist dein nächster Schritt? Was erwartest du?',h:'Ein kleiner, schneller Schritt – am besten heute oder morgen umsetzbar. Die Erwartung vorher festhalten!'},
+ {k:'when',n:'5',q:'Wann können wir uns ansehen, was wir aus diesem Schritt gelernt haben?',h:'So bald wie möglich – täglich ist ideal.'}];
+function kStartCoach(id){const tc=tcById(id),f=tc.obstacles.find(o=>o.focus),tm=new Date(Date.now()+864e5).toISOString().slice(0,10);V.tcid=id;V.coach={tcId:id,step:0,a:{focus:f?f.id:'',when:tm},m:{}};if(V.tool!=='kata'){V.tool='kata';V.view='tool'}render();scrollTo(0,0)}
+function cGo(d){const c=V.coach;c.step=Math.max(0,Math.min(CQ.length-1,c.step+d));render();scrollTo(0,0)}
+function coachV(p,tc){const c=V.coach,a=c.a,s=CQ[c.step],prev=openExp(tc),fld2=(k,ph,rows=2)=>`<textarea rows="${rows}" placeholder="${esc(ph)}" oninput="V.coach.a.${k}=this.value">${esc(a[k]||'')}</textarea>`;
+ let body='';
+ if(s.k==='tz')body=`${tc.target||tc.metrics.length?`<div class="tip"><b>Hinterlegt:</b> ${esc(tc.target||tc.title)}${tc.metrics.map(m=>`<br>• ${esc(m.name)}: Ziel ${esc(m.target||'?')} ${esc(m.unit)} bis ${dDE(tc.by+'T12:00')}`).join('')}</div>`:''}<h3>Antwort des Lernenden</h3>${fld2('tz','Notiz (optional)')}`;
+ if(s.k==='ist')body=`${tc.metrics.map(m=>`<label class="f" style="margin-top:8px"><span>${esc(m.name)} ${m.unit?'('+esc(m.unit)+')':''} · zuletzt ${fmt(mLast(tc,m),2)} · Ziel ${esc(m.target||'?')}</span><input inputmode="decimal" placeholder="Heutiger Messwert" value="${esc(c.m[m.id]||'')}" oninput="V.coach.m['${m.id}']=this.value"></label>`).join('')||'<p class="mut sm">Für diesen Zielzustand ist noch keine Kennzahl hinterlegt.</p>'}<h3>Beobachtung</h3>${fld2('ist','Was sieht der Lernende am Prozess?')}`;
+ if(s.k==='refl')body=prev?`<div class="tip"><b>Letzter Schritt (${dDE(prev.date+'T12:00')}):</b> ${esc(prev.step)}${prev.expect?`<br><b>Erwartet:</b> ${esc(prev.expect)}`:''}</div><h3>Was ist tatsächlich passiert?</h3>${fld2('happened','Ergebnis')}<h3>Was hast du gelernt?</h3>${fld2('learned','Erkenntnis')}${prev.obstacle?`<label class="row gap" style="margin-top:10px;justify-content:flex-start"><input type="checkbox" ${a.obsDone?'checked':''} onchange="V.coach.a.obsDone=this.checked"> Hindernis „${esc(trunc((tc.obstacles.find(o=>o.id===prev.obstacle)||{}).text||'',40))}“ ist beseitigt</label>`:''}`:'<div class="empty sm">Erster Coaching-Zyklus – es gibt noch keinen vorherigen Schritt. Einfach weiter.</div>';
+ if(s.k==='obs')body=`${tc.obstacles.filter(o=>o.status!=='beseitigt').map(o=>`<label class="row gap" style="justify-content:flex-start;padding:8px 0;border-bottom:1px solid var(--bd);flex-wrap:nowrap"><input type="radio" name="cfo" style="width:auto" ${a.focus===o.id?'checked':''} onchange="V.coach.a.focus='${o.id}'"><span>${esc(o.text)}</span></label>`).join('')||'<p class="mut sm">Noch keine Hindernisse erfasst.</p>'}
+  <div class="row" style="margin-top:10px;flex-wrap:nowrap"><input id="cob" placeholder="Neues Hindernis"><button class="btn sm" onclick="kAddObs('cob')">＋</button></div>`;
+ if(s.k==='next')body=`<h3>Nächster Schritt / Experiment</h3>${fld2('step','Was genau probierst du als Nächstes?')}<h3>Was erwartest du?</h3>${fld2('expect','Erwartetes Ergebnis')}`;
+ if(s.k==='when'){const f=tc.obstacles.find(o=>o.id===a.focus);body=`<input type="date" value="${esc(a.when||'')}" onchange="V.coach.a.when=this.value"><h3>Zusammenfassung</h3><div class="card sm" style="margin:0">${prev&&a.happened?`<div><b>Passiert:</b> ${esc(a.happened)}</div>`:''}${a.learned?`<div><b>Gelernt:</b> ${esc(a.learned)}</div>`:''}<div><b>Hindernis:</b> ${f?esc(f.text):'–'}</div><div><b>Nächster Schritt:</b> ${esc(a.step||'–')}</div><div><b>Erwartung:</b> ${esc(a.expect||'–')}</div>${Object.keys(c.m).filter(x=>has(c.m[x])).length?`<div><b>Messwerte:</b> ${tc.metrics.filter(m=>has(c.m[m.id])).map(m=>esc(m.name)+' '+c.m[m.id]).join(', ')}</div>`:''}</div>`}
+ return `<div class="cdots">${CQ.map((x,j)=>`<span class="${j===c.step?'on':j<c.step?'ok':''}">${x.n}</span>`).join('')}</div>
+ <div class="mut sm">🎓 ${esc(tc.learner||'Lernender')} · ${esc(tc.title)}</div><div class="cq">${s.q}</div><div class="intro" style="margin:0 0 12px"><span>💡 ${s.h}</span></div>${body}
+ <div class="row" style="margin-top:16px;flex-wrap:nowrap">${c.step?'<button class="btn" onclick="cGo(-1)">‹ Zurück</button>':''}<span style="flex:1"></span>${c.step<CQ.length-1?'<button class="btn pri" onclick="cGo(1)">Weiter ›</button>':'<button class="btn pri" onclick="cFinish()">✓ Coaching abschließen</button>'}</div>`}
+function cFinish(){const p=P(),k=p.kata,c=V.coach,a=c.a,tc=tcById(c.tcId),now=Date.now(),prev=openExp(tc);
+ tc.metrics.forEach(m=>{const v=num(c.m[m.id]);if(isFinite(v))tc.meas.push({t:now+Math.random(),date:today(),mid:m.id,val:v})});
+ if(prev&&(a.happened||a.learned)){prev.result=a.happened||prev.result;prev.learned=a.learned||prev.learned;prev.done=true;if(a.obsDone&&prev.obstacle){const o=tc.obstacles.find(x=>x.id===prev.obstacle);if(o){o.status='beseitigt';o.focus=false}}}
+ if(a.focus){tc.obstacles.forEach(o=>o.focus=o.id===a.focus);const o=tc.obstacles.find(x=>x.id===a.focus);if(o&&o.status==='offen')o.status='in Arbeit'}
+ if(a.step&&a.step.trim())tc.exps.push({id:uid(),date:today(),obstacle:a.focus||'',step:a.step.trim(),expect:(a.expect||'').trim(),result:'',learned:'',done:false,t:now});
+ if(a.when)tc.nextCoach=a.when;
+ k.sessions.push({id:uid(),tcId:tc.id,learner:tc.learner,t:now,answers:{...a,obstacleText:(tc.obstacles.find(o=>o.id===a.focus)||{}).text||''},meas:{...c.m}});
+ V.coach=null;save();render();scrollTo(0,0);toast('Coaching-Zyklus gespeichert')}
+
+const R={kata:kataV,prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
