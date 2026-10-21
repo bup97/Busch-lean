@@ -1,1 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#0f6e56"/><path d="M96 330h80l50-120 60 170 50-110h80" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/><text x="256" y="150" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-weight="800" font-size="96" fill="#fff">LEAN</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="112" fill="#0f6e56"/>
+<g fill="none" stroke="#fff" stroke-width="52" stroke-linejoin="miter">
+<rect x="151" y="60" width="52" height="260" fill="#fff" stroke="none"/>
+<path d="M177 86H267A46 46 0 0 1 267 178H177"/>
+<path d="M177 178H277A58 58 0 0 1 277 294H177"/>
+</g>
+<rect x="196" y="338" width="120" height="20" rx="10" fill="#f6c453"/>
+<g fill="#bff0dc" fill-rule="evenodd" transform="translate(5,0)">
+<path d="M117 380H137V432H173V452H117Z"/>
+<path d="M187 380H239V398H207V407H233V425H207V434H239V452H187Z"/>
+<path d="M251 452L273 380H291L313 452H293L288 436H276L271 452ZM278 421H286L282 404Z"/>
+<path d="M325 452V380H343L367 421V380H385V452H367L343 411V452Z"/>
+</g>
+</svg>

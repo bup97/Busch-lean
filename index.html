@@ -20,6 +20,9 @@ html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-sy
 header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--card);border-bottom:1px solid var(--bd)}
 header h1{flex:1;margin:0;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 header .logo{font-weight:800;color:var(--pri)}
+.brand{display:flex;align-items:center;gap:9px}.brand svg{flex:none;border-radius:8px}
+.bt{display:block;font-weight:900;font-size:19px;letter-spacing:.02em;line-height:1}.bt i{font-style:normal;color:#e0a92e;margin:0 1px}
+.bs{display:block;font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.06em;line-height:1.2;margin-top:2px}
 .back,.info{border:0;background:var(--pri2);color:var(--pri);border-radius:10px;min-width:36px;height:36px;font-size:20px;font-weight:700;cursor:pointer}
 .info{font-size:13px;padding:0 10px}
 main{max-width:860px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom) + 40px)}
@@ -278,6 +281,7 @@ notes:{name:'Notizen',icon:'📝',short:'Beobachtungen, Gesprächsnotizen und Id
  guide:{why:'Hier sammelst du alles, was nicht in ein Werkzeug passt oder was du schnell festhalten willst.',
  steps:['Notiz schreiben und optional einem Werkzeug zuordnen.','Zugeordnete Notizen erscheinen auch direkt im jeweiligen Werkzeug.'],tip:''}}
 };
+const BMARK='<svg viewBox="0 0 512 512" width="34" height="34" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0f6e56"/><g transform="translate(0,38)" fill="none" stroke="#fff" stroke-width="52"><rect x="151" y="60" width="52" height="260" fill="#fff" stroke="none"/><path d="M177 86H267A46 46 0 0 1 267 178H177"/><path d="M177 178H277A58 58 0 0 1 277 294H177"/></g><rect x="186" y="392" width="140" height="26" rx="13" fill="#f6c453"/></svg>';
 const ORDER=['kata','vsm','muda','time','spag','greif','ishi','why','s5','talk','prob','act','notes'];
 
 const MUDA=[['T','Transport','Unnötiges Bewegen von Material und Teilen','#2563eb'],['I','Bestände','Mehr Material als nötig, Zwischenpuffer','#7c3aed'],['M','Bewegung','Suchen, Bücken, Strecken, unnötige Wege','#db2777'],['W','Warten','Auf Material, Maschine, Info oder Kollegen','#d97706'],['O','Überproduktion','Mehr oder früher produzieren als nötig','#0891b2'],['P','Überbearbeitung','Mehr Aufwand als der Kunde bezahlt','#65a30d'],['D','Fehler/Nacharbeit','Ausschuss, Nacharbeit, zusätzliches Prüfen','#dc2626'],['S','Ungenutztes Potenzial','Wissen und Ideen der Mitarbeiter nicht genutzt','#475569']];
@@ -301,7 +305,7 @@ function hdr(title,back,tool){return `${back?`<button class="back" onclick="${ba
 function render(){
  V.live=null;const h=$('#hdr'),a=$('#app');
  if(V.view==='project'&&!P())V.view='home';
- if(V.view==='home'){h.innerHTML=hdr('<span class="logo">Busch</span> LEAN');a.innerHTML=homeV()}
+ if(V.view==='home'){h.innerHTML=hdr(`<span class="brand">${BMARK}<span><span class="bt">B<i>-</i>LEAN</span><span class="bs">be lean. · Busch LEAN</span></span></span>`);a.innerHTML=homeV()}
  else if(V.view==='lib'){h.innerHTML=hdr('Werkzeuge & Anleitungen',"go('home')");a.innerHTML=libV()}
  else if(V.view==='project'){h.innerHTML=hdr(esc(P().name),"go('home')");a.innerHTML=projectV(P())}
  else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(V.coach?'🎓 Coaching-Kata':t.icon+' '+t.name,toolBack(),V.coach?null:V.tool);a.innerHTML=R[V.tool](p)}
@@ -922,7 +926,7 @@ function vsmSheet(p,k){
  const map=(svgOf(vsmMap(v,c))||'').replace(/^<svg width="[\d.]+" height="[\d.]+"/,`<svg x="30" y="118" width="${W-60}" height="${H-118-238}" preserveAspectRatio="xMidYMid meet"`);
  let s=`<rect x="0" y="0" width="${W}" height="${H}" style="fill:#fff"/><rect x="12" y="12" width="${W-24}" height="${H-24}" style="fill:none;stroke:#17202a;stroke-width:2.5"/>`;
  s+=T(30,62,'Wertstrom – '+lab,'font-size:40px;font-weight:800')+T(30,96,p.name+(p.desc?' · '+p.desc:''),'font-size:20px;fill:#6b7280');
- s+=`<text x="${W-30}" y="62" text-anchor="end" style="${ff};font-size:20px;font-weight:700;fill:#0f6e56">Busch LEAN</text><text x="${W-30}" y="96" text-anchor="end" style="${ff};font-size:18px;fill:#6b7280">${esc(v.customer.name?'Kunde: '+v.customer.name+' · ':'')}${has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':''}</text>`;
+ s+=`<text x="${W-30}" y="62" text-anchor="end" style="${ff};font-size:20px;font-weight:700;fill:#0f6e56">B-LEAN · be lean.</text><text x="${W-30}" y="96" text-anchor="end" style="${ff};font-size:18px;fill:#6b7280">${esc(v.customer.name?'Kunde: '+v.customer.name+' · ':'')}${has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':''}</text>`;
  s+=`<line x1="12" y1="110" x2="${W-12}" y2="110" style="stroke:#17202a;stroke-width:1.5"/>`+map;
  const y0=H-226;s+=`<line x1="12" y1="${y0-12}" x2="${W-12}" y2="${y0-12}" style="stroke:#17202a;stroke-width:1.5"/>`;
  const K=[['Kundentakt',fmt(c.takt,1),'s'],['Durchlaufzeit',fmt(c.invDays,1),'AT'],['Bearbeitungszeit',fmt(c.bz,0),'s'],['Flussgrad',fmt(c.flow,2),'%'],['Bestand gesamt',fmt(c.invPcs,0),'Stk'],['Mitarbeiter',fmt(c.ops,1),`(theor. ${fmt(c.opsTheo,1)})`],['Engpass',c.bottleneck?(c.bottleneck.name||'–'):'–',c.bottleneck?fmt(c.bottleneck.eff,0)+' s':''],['Vollständigkeit',vcomp(v),'%']];
