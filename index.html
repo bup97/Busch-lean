@@ -80,6 +80,8 @@ label.f i{font-style:normal;opacity:.7}
 @keyframes gfl{from{transform:scale(.3);opacity:.9}to{transform:scale(2);opacity:0}}
 button.chip{font:inherit;font-size:13px;padding:5px 12px;cursor:pointer;color:var(--tx)}
 button.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+#printhost{display:none}
+@media print{body>*:not(#printhost){display:none!important}#printhost{display:block!important;background:#fff}#printhost *{-webkit-print-color-adjust:exact;print-color-adjust:exact}.ppage+.ppage{break-before:page;page-break-before:always}.ppage svg{display:block}}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -413,7 +415,7 @@ function vsmV(p){
  const seg=`<div class="seg">${[['ist','Ist-Zustand'],['soll','Soll-Zustand']].map(([k,l])=>`<button class="${V.vv===k?'on':''}" onclick="V.vv='${k}';render()">${l}</button>`).join('')}</div>`;
  const tabs=`<div class="tabs">${[['daten','Daten'],['karte','Karte'],['kpi','Kennzahlen'],['check','Checkliste']].map(([k,l])=>`<button class="${V.vt===k?'on':''}" onclick="V.vt='${k}';render()">${l}</button>`).join('')}</div>`;
  const body=V.vt==='daten'?vsmData(v):V.vt==='karte'?vsmMap(v,c):V.vt==='kpi'?vsmKpi(p):vsmCheck(v);
- return intro('vsm')+seg+tabs+`<div id="live">${liveBar(v)}</div>`+body+notesBox(p,'vsm');
+ return intro('vsm')+`<div class="row gap" style="margin:-4px 0 10px;flex-wrap:nowrap"><button class="btn sm" style="flex:1" onclick="plotModal()">🖨️ Plotten / PDF</button><button class="btn sm" style="flex:1" onclick="aiModal()">🤖 KI fragen</button></div>`+seg+tabs+`<div id="live">${liveBar(v)}</div>`+body+notesBox(p,'vsm');
 }
 function vsmData(v){
  const pr=`vsm.${V.vv}`,c=v.customer;
@@ -728,15 +730,18 @@ function talkV(p){
 const XL_URL='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
 function loadXL(){if(window.ExcelJS)return Promise.resolve();return new Promise((res,rej)=>{const s=document.createElement('script');s.src=XL_URL;s.onload=res;s.onerror=()=>{s.remove();rej(new Error('offline'))};document.head.appendChild(s)})}
 const svgOf=h=>{const m=String(h||'').match(/<svg[\s\S]*<\/svg>/);return m?m[0]:null};
-async function svgPng(html,scale=2){
+function inlineSvg(html){
  const host=document.createElement('div');host.className='xl';host.style.cssText='position:fixed;left:-99999px;top:0';host.innerHTML=html;document.body.appendChild(host);
  const svg=host.querySelector('svg'),vb=(svg.getAttribute('viewBox')||'').split(/[ ,]+/).map(Number);
  const W=vb[2]||+svg.getAttribute('width'),H=vb[3]||+svg.getAttribute('height');
  svg.setAttribute('width',W);svg.setAttribute('height',H);svg.style.cssText=`width:${W}px;height:${H}px;max-width:none`;
  const props=['fill','fill-opacity','stroke','stroke-width','stroke-dasharray','stroke-linejoin','stroke-linecap','opacity','font-size','font-weight','font-family','font-style','color'];
  const els=[...svg.querySelectorAll('*')],sty=els.map(el=>{const cs=getComputedStyle(el);return props.map(k=>k+':'+cs.getPropertyValue(k)).join(';')});
- els.forEach((el,i)=>el.setAttribute('style',sty[i]));svg.style.color=getComputedStyle(svg).color;
- const xml=new XMLSerializer().serializeToString(svg);host.remove();
+ els.forEach((el,i)=>el.setAttribute('style',sty[i]));svg.style.color=getComputedStyle(svg).color;svg.removeAttribute('class');
+ const xml=new XMLSerializer().serializeToString(svg);host.remove();return{xml,W,H};
+}
+async function svgPng(html,scale=2){
+ const{xml,W,H}=inlineSvg(html);
  const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Diagramm konnte nicht gezeichnet werden'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)});
  const cv=document.createElement('canvas');cv.width=Math.round(W*scale);cv.height=Math.round(H*scale);const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0,cv.width,cv.height);
  return{base64:cv.toDataURL('image/png'),w:W,h:H};
@@ -813,6 +818,8 @@ async function exportXlsx(){
  }catch(e){console.error(e);alert('Excel-Export fehlgeschlagen: '+e.message)}
 }
 function xlShare(){navigator.share({files:[V.xlFile],title:V.xlFile.name}).then(closeM).catch(()=>{})}
+function offerFile(file,title,info){V.xlFile=file;let cs=false;try{cs=!!(navigator.canShare&&navigator.canShare({files:[file]}))}catch(e){}
+ modal(`<h2>${title}</h2><p class="mut">${esc(file.name)}${info?'<br>'+info:''}</p>${cs?'<button class="btn pri wide" onclick="xlShare()">Teilen / In Dateien sichern</button>':''}<button class="btn wide${cs?'':' pri'}" onclick="xlDownload()">Herunterladen</button>`)}
 function xlDownload(){const a=document.createElement('a');a.href=URL.createObjectURL(V.xlFile);a.download=V.xlFile.name;document.body.appendChild(a);a.click();a.remove();closeM()}
 
 /* ===== Probleme ===== */
@@ -887,6 +894,70 @@ function probDetail(p,pr){
  <div class="tl" style="margin-top:14px">${past.map(item).join('')}</div>${fut.length?`<div class="tlnow">Heute · geplant</div><div class="tl">${fut.map(item).join('')}</div>`:''}</div>
  <button class="btn del sm" onclick="delProb()">Problem löschen</button>`;
 }
+
+/* ===== Wertstrom plotten (A3 Vektor) ===== */
+const PAGE={A3:{w:404,h:281,n:'A3'},A4:{w:281,h:194,n:'A4'}};
+function vsmSheet(p,k){
+ const v=p.vsm[k],c=vcalc(v),W=1616,H=1124,lab=k==='ist'?'Ist-Zustand':'Soll-Zustand',ff='font-family:Helvetica,Arial,sans-serif';
+ const T=(x,y,t,st)=>`<text x="${x}" y="${y}" style="${ff};fill:#17202a;${st||'font-size:16px'}">${esc(t)}</text>`;
+ const map=(svgOf(vsmMap(v,c))||'').replace(/^<svg width="[\d.]+" height="[\d.]+"/,`<svg x="30" y="118" width="${W-60}" height="${H-118-238}" preserveAspectRatio="xMidYMid meet"`);
+ let s=`<rect x="0" y="0" width="${W}" height="${H}" style="fill:#fff"/><rect x="12" y="12" width="${W-24}" height="${H-24}" style="fill:none;stroke:#17202a;stroke-width:2.5"/>`;
+ s+=T(30,62,'Wertstrom – '+lab,'font-size:40px;font-weight:800')+T(30,96,p.name+(p.desc?' · '+p.desc:''),'font-size:20px;fill:#6b7280');
+ s+=`<text x="${W-30}" y="62" text-anchor="end" style="${ff};font-size:20px;font-weight:700;fill:#0f6e56">Busch LEAN</text><text x="${W-30}" y="96" text-anchor="end" style="${ff};font-size:18px;fill:#6b7280">${esc(v.customer.name?'Kunde: '+v.customer.name+' · ':'')}${has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':''}</text>`;
+ s+=`<line x1="12" y1="110" x2="${W-12}" y2="110" style="stroke:#17202a;stroke-width:1.5"/>`+map;
+ const y0=H-226;s+=`<line x1="12" y1="${y0-12}" x2="${W-12}" y2="${y0-12}" style="stroke:#17202a;stroke-width:1.5"/>`;
+ const K=[['Kundentakt',fmt(c.takt,1),'s'],['Durchlaufzeit',fmt(c.invDays,1),'AT'],['Bearbeitungszeit',fmt(c.bz,0),'s'],['Flussgrad',fmt(c.flow,2),'%'],['Bestand gesamt',fmt(c.invPcs,0),'Stk'],['Mitarbeiter',fmt(c.ops,1),`(theor. ${fmt(c.opsTheo,1)})`],['Engpass',c.bottleneck?(c.bottleneck.name||'–'):'–',c.bottleneck?fmt(c.bottleneck.eff,0)+' s':''],['Vollständigkeit',vcomp(v),'%']];
+ K.forEach((kk,i)=>{const x=30+(i%4)*146,y=y0+(i<4?0:96),isN=/^[\d.,–-]+$/.test(String(kk[1]));s+=`<rect x="${x}" y="${y}" width="138" height="86" rx="6" style="fill:#e3f2ec;stroke:#0f6e56;stroke-width:1.5"/>`+T(x+10,y+24,kk[0],'font-size:14px;fill:#4b5563')+T(x+10,y+58,isN?kk[1]:trunc(kk[1],12),isN?'font-size:28px;font-weight:800':'font-size:19px;font-weight:800')+T(x+10,y+78,kk[2],'font-size:13px;fill:#4b5563')});
+ const lx=622;s+=T(lx,y0+20,'Legende','font-size:17px;font-weight:800');
+ const L=[[`<polygon points="${lx+12},${y0+36} ${lx},${y0+58} ${lx+24},${y0+58}" style="fill:#f6c453;stroke:#17202a"/>`,'Bestand (Stk / Reichweite)'],[`<line x1="${lx}" y1="${y0+82}" x2="${lx+30}" y2="${y0+82}" style="stroke:#17202a;stroke-width:2.5"/>`,'Materialfluss'],[`<line x1="${lx}" y1="${y0+112}" x2="${lx+30}" y2="${y0+112}" style="stroke:#6b7280;stroke-width:2;stroke-dasharray:6 5"/>`,'Informationsfluss'],[`<rect x="${lx}" y="${y0+130}" width="30" height="20" style="fill:#fff;stroke:#c62828;stroke-width:3"/>`,'Prozess über Kundentakt'],[`<path d="M${lx} ${y0+182}H${lx+10}V${y0+170}H${lx+20}V${y0+182}H${lx+30}" style="fill:none;stroke:#0f6e56;stroke-width:2.5"/>`,'Zeitlinie: oben Liegezeit, unten Bearbeitung']];
+ L.forEach((l,i)=>{s+=l[0]+T(lx+42,y0+52+i*30,l[1],'font-size:15px')});
+ const notes=p.notes.filter(n=>n.tag==='vsm').sort((a,b)=>a.t-b.t).slice(-6),nx=930;
+ s+=T(nx,y0+20,'Notizen / Kaizen-Ideen','font-size:17px;font-weight:800');
+ if(notes.length)notes.forEach((n,i)=>{s+=T(nx,y0+48+i*26,'• '+trunc(n.text.replace(/\s+/g,' '),32),'font-size:14px')});else for(let i=0;i<5;i++)s+=`<line x1="${nx}" y1="${y0+56+i*30}" x2="${W-430}" y2="${y0+56+i*30}" style="stroke:#d1d5db"/>`;
+ const bx=W-410,bw=380;s+=`<rect x="${bx}" y="${y0}" width="${bw}" height="190" style="fill:none;stroke:#17202a;stroke-width:1.5"/>`;
+ [['Projekt',p.name],['Zustand',lab],['Datum',new Date().toLocaleDateString('de-DE')],['Erstellt von','']].forEach((r,i)=>{const y=y0+i*47.5;if(i)s+=`<line x1="${bx}" y1="${y}" x2="${bx+bw}" y2="${y}" style="stroke:#17202a"/>`;s+=T(bx+10,y+17,r[0],'font-size:12px;fill:#6b7280')+T(bx+10,y+39,trunc(r[1],30),'font-size:18px;font-weight:700')});
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" class="vsm">${s}</svg>`;
+}
+function plotModal(){const p=P();V.pz=V.pz||V.vv;V.pf=V.pf||'A3';const ok=k=>p.vsm[k].steps.length>0;
+ const seg=(key,opts)=>`<div class="seg">${opts.map(([v,l])=>`<button class="${V[key]===v?'on':''}" onclick="V.${key}='${v}';plotModal()">${l}</button>`).join('')}</div>`;
+ modal(`<h2>🖨️ Wertstrom plotten</h2><p class="mut sm">Druckfertiges Blatt im Querformat als Vektorgrafik – bleibt auch beim Hochskalieren auf A1 scharf.</p>
+ <h3>Zustand</h3>${seg('pz',[['ist','Ist'],['soll','Soll'],['beide','Ist + Soll']])}<h3>Format</h3>${seg('pf',[['A3','A3 quer'],['A4','A4 quer']])}
+ ${(V.pz==='beide'?['ist','soll']:[V.pz]).some(ok)?'':'<p class="over sm">Für diesen Zustand gibt es noch keine Prozessschritte.</p>'}
+ <button class="btn pri wide" onclick="vsmPrint()">Drucken / als PDF sichern</button><button class="btn wide" onclick="vsmSvg()">SVG-Datei (Vektor) herunterladen</button>
+ <p class="mut sm" style="margin-top:10px">Tipp: Im Druckdialog „Als PDF sichern“ bzw. auf dem iPhone Teilen → „In Dateien sichern“. Für den Plotter das PDF oder die SVG-Datei verwenden und dort die Papiergröße wählen.</p>`)}
+function plotStates(){const p=P();return(V.pz==='beide'?['ist','soll']:[V.pz]).filter(k=>p.vsm[k].steps.length)}
+function vsmPrint(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf];
+ let host=$('#printhost');if(!host){host=document.createElement('div');host.id='printhost';document.body.appendChild(host)}host.className='xl';
+ host.innerHTML=ks.map(k=>`<div class="ppage">${vsmSheet(p,k).replace('<svg ',`<svg style="width:${f.w}mm;height:${f.h}mm" `)}</div>`).join('');
+ let st=$('#pagesize');if(!st){st=document.createElement('style');st.id='pagesize';document.head.appendChild(st)}st.textContent=`@page{size:${f.n} landscape;margin:8mm}`;
+ closeM();setTimeout(()=>{window.print()},150)}
+window.addEventListener('afterprint',()=>{const h=$('#printhost');if(h)h.innerHTML=''});
+function vsmSvg(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf],k=ks[0];
+ const{xml}=inlineSvg(vsmSheet(p,k)),out='<?xml version="1.0" encoding="UTF-8"?>\n'+xml.replace(/<svg ([^>]*?)width="[\d.]+" height="[\d.]+"/,`<svg $1`).replace('<svg ',`<svg width="${f.w+16}mm" height="${f.h+16}mm" `).replace(/(<svg[^>]*?) style="[^"]*"/,'$1');
+ offerFile(new File([out],`Wertstrom_${k==='ist'?'Ist':'Soll'}_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.svg`,{type:'image/svg+xml'}),'🗺️ SVG-Datei fertig',ks.length>1?'Hinweis: Die SVG-Datei enthält nur den Ist-Zustand – für den Soll-Zustand oben „Soll“ wählen.':'Vektorgrafik im Format '+f.n+' quer.')}
+
+/* ===== KI fragen (Kopieren für Claude) ===== */
+const AI_Q=[['Produktfamilien','Ich habe mehrere Produkte. Wie bilde ich sinnvolle Produktfamilien für meinen Wertstrom und welche Kriterien sollte ich anlegen?'],['Daten prüfen','Prüfe meine Wertstromdaten auf Lücken, Unstimmigkeiten und unplausible Werte. Was sollte ich noch vor Ort aufnehmen?'],['Engpass','Wo liegt der Engpass und welche konkreten Maßnahmen schlägst du vor, um den Fluss zu verbessern?'],['Soll-Zustand','Schlage mir einen Soll-Zustand (Wertstromdesign) vor – mit Schrittmacher, FIFO/Supermärkten, Losgrößen und Taktabstimmung – und begründe die Schritte.'],['Kennzahlen erklären','Erkläre mir meine Kennzahlen (Takt, Durchlaufzeit, Flussgrad) und was sie über meinen Prozess aussagen.']];
+function vsmText(p){
+ const fl={push:'Push',fifo:'FIFO',sm:'Supermarkt/Kanban'},g=x=>String(x??'').trim()||'–';let t='';
+ for(const [k,lab] of [['ist','IST-ZUSTAND'],['soll','SOLL-ZUSTAND']]){const v=p.vsm[k];if(!v.steps.length&&!has(v.customer.demand))continue;const c=vcalc(v),cu=v.customer;
+  t+=`\n--- ${lab} ---\nKunde: ${g(cu.name)} | Bedarf: ${g(cu.demand)} Stk/Tag | ${g(cu.shifts)} Schicht(en) à ${g(cu.shiftMin)} min, Pausen ${g(cu.breakMin)} min/Schicht | Kundentakt: ${fmt(c.takt,1)} s | Lieferung an Kunde: ${g(cu.delivery)}\n`;
+  t+=`Lieferant: ${g(v.supplier.name)} (Anlieferung: ${g(v.supplier.delivery)})\nPlanung: ${g(v.info.planning)} | Kundenbestellung: ${g(v.info.custOrder)} | Lieferantenabruf: ${g(v.info.suppOrder)} | Steuerung: ${g(v.info.control)}\nProzessschritte (in Flussrichtung):\n`;
+  c.steps.forEach((s,i)=>{t+=`${i+1}. ${g(s.name)} | Bestand davor: ${g(s.inv)} Stk (${fmt(s.days,1)} AT), Steuerung ${fl[s.flow]||'–'} | ZZ ${g(s.ct)} s (eff. ${fmt(s.eff,1)} s) | Rüstzeit ${g(s.co)} min | Verfügbarkeit ${g(s.avail)} % | MA ${g(s.ops)} | Plätze ${g(s.par)} | Los ${g(s.lot)} | Ausschuss ${g(s.scrap)} % | Auslastung ${fmt(s.util,0)} %\n`});
+  t+=`Fertigwarenbestand: ${g(v.fg)} Stk (${fmt(c.fgDays,1)} AT)\nKennzahlen: Durchlaufzeit ${fmt(c.invDays,1)} AT, Bearbeitungszeit ${fmt(c.bz,0)} s, Flussgrad ${fmt(c.flow,2)} %, Bestand ${fmt(c.invPcs,0)} Stk, Mitarbeiter ${fmt(c.ops,1)} (theoretisch ${fmt(c.opsTheo,1)}), Engpass: ${c.bottleneck?g(c.bottleneck.name)+' ('+fmt(c.bottleneck.eff,1)+' s)':'–'}\n`;
+  const miss=vchecks(v).filter(x=>!x[1]).map(x=>x[0]);if(miss.length)t+=`Noch nicht erfasst: ${miss.join(', ')}\n`}
+ const ns=p.notes.filter(n=>n.tag==='vsm');if(ns.length)t+=`\nNotizen zum Wertstrom:\n${ns.map(n=>'- '+n.text.replace(/\s+/g,' ')).join('\n')}\n`;
+ return t||'\n(Noch keine Wertstromdaten erfasst.)\n'}
+function aiPrompt(q){const p=P();return `Du bist ein erfahrener Lean-Berater für Wertstromanalyse und Wertstromdesign (nach Rother/Shook). Antworte auf Deutsch, praxisnah und konkret, und beziehe dich auf meine Daten. Wenn Angaben fehlen, sag mir, welche ich noch aufnehmen soll.\n\nMEINE FRAGE:\n${q||'(bitte ergänzen)'}\n\n=== PROJEKT: ${p.name} ===${p.desc?'\nZiel: '+p.desc:''}\n${vsmText(p)}\nEinheiten: ZZ = Zykluszeit, AT = Arbeitstage Reichweite, MA = Mitarbeiter. „–“ = noch nicht erfasst.`}
+function aiModal(){modal(`<h2>🤖 KI fragen</h2><p class="mut sm">Deine Frage und alle Wertstromdaten werden als Text kopiert. Danach öffnet sich Claude – dort einfach einfügen und absenden.</p>
+ <div class="chips" style="margin:10px 0">${AI_Q.map((x,i)=>`<button class="chip" onclick="document.getElementById('aiq').value=AI_Q[${i}][1]">${x[0]}</button>`).join('')}</div>
+ <textarea id="aiq" rows="4" placeholder="Deine Frage, z. B. Wie fasse ich meine 5 Produktvarianten zu Produktfamilien zusammen?">${esc(V.aiq||'')}</textarea>
+ <button class="btn pri wide" onclick="aiCopy(true)">📋 Kopieren & Claude öffnen</button><button class="btn wide" onclick="aiCopy(false)">Nur kopieren</button>
+ <details style="margin-top:12px"><summary class="sm">Vorschau der Daten</summary><pre class="sm" style="white-space:pre-wrap;background:var(--bg);padding:8px;border-radius:8px;max-height:260px;overflow:auto">${esc(vsmText(P()))}</pre></details>`)}
+function aiCopy(open){const q=($('#aiq').value||'').trim();V.aiq=q;const txt=aiPrompt(q);
+ const done=()=>{toast('Kopiert – in Claude einfügen');if(open)window.open('https://claude.ai/new','_blank')};
+ const fallback=()=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();if(ok)done();else{modal(`<h2>Text kopieren</h2><p class="mut sm">Automatisches Kopieren ging nicht – Text markieren und kopieren:</p><textarea rows="12" readonly onfocus="this.select()">${esc(txt)}</textarea><button class="btn wide" onclick="closeM()">Schließen</button>`)}};
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,fallback);else fallback()}
 
 const R={prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
