@@ -1,13 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <rect width="512" height="512" rx="110" fill="#0f6e56"/>
-<g transform="translate(8,0)">
-<g transform="translate(44.8,81.8) scale(0.22)" fill="none" stroke="#f6c453" stroke-width="52">
-<rect x="151" y="60" width="52" height="260" fill="#f6c453" stroke="none"/>
-<path d="M177 86H267A46 46 0 0 1 267 178H177"/>
-<path d="M177 178H277A58 58 0 0 1 277 294H177"/>
+<g transform="translate(58,-300)">
+<g fill="#f6c453">
+<rect x="11" y="380" width="19" height="72"/>
+<path d="M20 388.5H40A13.75 13.75 0 0 1 40 416H20M20 416H43A13.75 13.75 0 0 1 43 443.5H20" fill="none" stroke="#f6c453" stroke-width="17"/>
+<rect x="76" y="408" width="30" height="16"/>
 </g>
-<rect x="128" y="111" width="22" height="11" rx="5.5" fill="#f6c453"/>
-<g fill="#fff" fill-rule="evenodd" transform="translate(43,-300)">
+<g fill="#fff" fill-rule="evenodd">
 <path d="M117 380H137V432H173V452H117Z"/>
 <path d="M187 380H239V398H207V407H233V425H207V434H239V452H187Z"/>
 <path d="M251 452L273 380H291L313 452H293L288 436H276L271 452ZM278 421H286L282 404Z"/>
