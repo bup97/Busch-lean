@@ -7,14 +7,19 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Busch LEAN">
-<meta name="theme-color" content="#0f6e56">
+<meta name="theme-color" content="#ffffff">
 <title>Busch LEAN</title>
+<script>(function(){var t='auto';try{t=localStorage.getItem('bl_theme')||'auto'}catch(e){}window.__theme=t;var d=t==='dark'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light')})()</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
 :root{--bg:#f3f4f6;--card:#fff;--tx:#17202a;--mut:#6b7280;--bd:#e2e5ea;--pri:#0f6e56;--pri2:#e3f2ec;--warn:#d97706;--bad:#c62828;--ok:#15803d;--va:#16a34a;--nva:#f59e0b;--w:#dc2626;--inv:#f6c453}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1316;--card:#1a2025;--tx:#e8edf1;--mut:#9aa4ad;--bd:#2c343b;--pri:#3fbf95;--pri2:#163229;--inv:#a87d1f}}
+:root{color-scheme:light;--wbg:#fde2e1;--wtx:#7f1d1d;--abg:#fef3c7;--atx:#92400e}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0f1316;--card:#1a2025;--tx:#e8edf1;--mut:#9aa4ad;--bd:#2c343b;--pri:#3fbf95;--pri2:#163229;--inv:#a87d1f;--wbg:#3a1618;--wtx:#fecaca;--abg:#3a2a0c;--atx:#fde68a}
+:root[data-theme=dark] .st.offen{background:rgba(239,68,68,.2);color:#fca5a5}:root[data-theme=dark] .st.arbeit,:root[data-theme=dark] .st.pruef{background:rgba(245,158,11,.2);color:#fcd34d}
+:root[data-theme=dark] .st.erledigt,:root[data-theme=dark] .st.umgesetzt{background:rgba(34,197,94,.2);color:#86efac}:root[data-theme=dark] .st.neu{background:rgba(59,130,246,.22);color:#93c5fd}:root[data-theme=dark] .st.abgelehnt{background:rgba(148,163,184,.2);color:#cbd5e1}
+:root[data-theme=dark] .pcard{box-shadow:none}:root[data-theme=dark] .seg button.on,:root[data-theme=dark] .pcount,:root[data-theme=dark] .cdots span.on,:root[data-theme=dark] .kst.ok b,:root[data-theme=dark] button.chip.on,:root[data-theme=dark] .score button.on{color:#06281e}:root[data-theme=dark] .btn.pri{color:#06281e}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
 header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--card);border-bottom:1px solid var(--bd)}
@@ -92,6 +97,25 @@ button.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .cdots{display:flex;gap:6px;margin-bottom:12px}.cdots span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:6px 0;border-radius:8px;background:var(--card);border:1px solid var(--bd);color:var(--mut)}
 .cdots span.ok{background:var(--pri2);color:var(--pri);border-color:var(--pri2)}.cdots span.on{background:var(--pri);color:#fff;border-color:var(--pri)}
 .cq{font-size:22px;font-weight:800;line-height:1.25;margin:6px 0 12px}
+#bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;background:var(--card);border-top:1px solid var(--bd);padding:4px 6px calc(env(safe-area-inset-bottom) + 4px)}
+body.hasnav #bnav{display:flex}body.hasnav main{padding-bottom:calc(env(safe-area-inset-bottom) + 96px)}body.hasnav .toast{bottom:calc(env(safe-area-inset-bottom) + 84px)}
+#bnav button{position:relative;flex:1;border:0;background:none;color:var(--mut);font:inherit;font-size:10.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 4px;cursor:pointer;border-radius:12px}
+#bnav button span{font-size:20px;line-height:1.15}#bnav button.on{color:var(--pri);background:var(--pri2)}
+#bnav em{position:absolute;top:2px;left:calc(50% + 6px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--bad);color:#fff;font-style:normal;font-size:10.5px;line-height:17px;text-align:center}
+.thm{border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;height:36px;min-width:40px;font-size:17px;cursor:pointer}
+.phead{display:flex;gap:12px;align-items:center;margin:2px 0 14px}.phead .pav{width:52px;height:52px;font-size:19px}
+.phead h1{margin:0;font-size:22px;line-height:1.2}.phead .ed{margin-left:auto}
+.todo{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--bd);cursor:pointer}.todo:last-child{border:0}
+.todo .ti{width:34px;height:34px;flex:none;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px}
+.todo.late .ti{background:var(--wbg)}.todo .tt{flex:1;min-width:0}.todo .tt b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgrp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tl2>div{overflow:hidden}.tl2 b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tl2 .ic{width:34px;height:34px;font-size:17px}.tl2{gap:9px;padding:10px 9px}
+.tl2{position:relative;display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px;cursor:pointer;min-height:62px}
+.tl2 .ic{width:38px;height:38px;flex:none;border-radius:11px;background:var(--pri2);display:flex;align-items:center;justify-content:center;font-size:19px}
+.tl2 b{display:block;font-size:14px;line-height:1.2}.tl2 small{display:block;font-size:11.5px;color:var(--mut);line-height:1.25;margin-top:2px}
+.tl2 em{position:absolute;top:6px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--bad)}
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+details.nbox>summary{list-style:none;display:flex;justify-content:space-between;align-items:center}details.nbox>summary::-webkit-details-marker{display:none}
+details.nbox>summary:after{content:'＋';color:var(--pri);font-weight:800}details.nbox[open]>summary:after{content:'－'}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -132,9 +156,9 @@ th{font-size:12px;color:var(--mut);font-weight:600}
 .q{padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}.q:last-child{border:0}
 .act.done .txt{text-decoration:line-through;opacity:.6}
 .st{border:0;border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
-.st.offen{background:#fde2e1;color:#9b1c1c}.st.arbeit{background:#fef3c7;color:#92400e}.st.erledigt{background:#dcfce7;color:#166534}
+.st.offen{background:#fde2e1;color:#9b1c1c}.st.arbeit{background:var(--abg);color:var(--atx)}.st.erledigt{background:#dcfce7;color:#166534}
 .over{color:var(--bad);font-weight:700}
-.st.neu{background:#dbeafe;color:#1e40af}.st.pruef{background:#fef3c7;color:#92400e}.st.umgesetzt{background:#dcfce7;color:#166534}.st.abgelehnt{background:#e5e7eb;color:#374151}
+.st.neu{background:#dbeafe;color:#1e40af}.st.pruef{background:var(--abg);color:var(--atx)}.st.umgesetzt{background:#dcfce7;color:#166534}.st.abgelehnt{background:#e5e7eb;color:#374151}
 .btn.on{background:var(--pri2);color:var(--pri);border-color:var(--pri)}
 .quote{border-left:3px solid var(--pri);padding:2px 0 2px 9px;margin:6px 0;font-style:italic;font-size:14px}
 .lvl{letter-spacing:1px;color:var(--bad)}
@@ -187,6 +211,7 @@ svg .sm{font-size:9.5px;fill:var(--mut)}
 <main id="app"></main>
 <div id="modal" class="modal hidden" onclick="if(event.target===this)closeM()"><div class="sheet" id="sheet"></div></div>
 <div id="toast" class="toast"></div>
+<nav id="bnav"></nav>
 <script>
 /* ===== Grundlagen ===== */
 const $=s=>document.querySelector(s);
@@ -299,15 +324,17 @@ function go(v){V.view=v;render();window.scrollTo(0,0)}
 function openP(id){V.pid=id;save();go('project')}
 function openT(id,keep){if(!keep){V.prid=null;V.tcid=null;V.coach=null}V.tool=id;go('tool')}
 function guide(id){const t=TOOLS[id],g=t.guide;modal(`<h2>${t.icon} ${t.name}</h2><h3>Wofür?</h3><p>${g.why}</p><h3>So geht's</h3><ol>${g.steps.map(s=>`<li>${s}</li>`).join('')}</ol>${g.tip?`<div class="tip">💡 ${g.tip}</div>`:''}<button class="btn pri wide" onclick="closeM()">Verstanden</button>`)}
-const intro=id=>`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
-function hdr(title,back,tool){return `${back?`<button class="back" onclick="${back}">‹</button>`:''}<h1>${title}</h1>${tool?`<button class="info" onclick="guide('${tool}')">ⓘ Anleitung</button>`:''}`}
+const EMPTY={kata:p=>!p.kata.challenge&&!p.kata.tcs.length,vsm:p=>!p.vsm.ist.steps.length&&!p.vsm.soll.steps.length,muda:p=>!p.muda.obs.length,time:p=>!p.muda.laps.length,spag:p=>!p.spag.pts.length&&!p.spag.st.length,greif:p=>!p.greifLive.taps.length&&!p.greif.length,ishi:p=>!p.ishi.problem&&!p.ishi.causes.length,why:p=>!p.whys.length,s5:p=>!p.audits.length,talk:p=>!p.talks.length,prob:p=>!p.problems.length,act:p=>!p.actions.length,notes:p=>!p.notes.length};
+const intro=id=>P()&&EMPTY[id]&&!EMPTY[id](P())?'':`<div class="intro"><span>${TOOLS[id].short}</span><button class="lnk" onclick="guide('${id}')">Anleitung</button></div>`;
+function hdr(title,back,tool,extra){return `${back?`<button class="back" onclick="${back}">‹</button>`:''}<h1>${title}</h1>${tool?`<button class="info" onclick="guide('${tool}')">ⓘ Anleitung</button>`:''}${extra||''}`}
 
 function render(){
  V.live=null;const h=$('#hdr'),a=$('#app');
  if(V.view==='project'&&!P())V.view='home';
- if(V.view==='home'){h.innerHTML=hdr(`<span class="brand">${BMARK}<span><span class="bt">B<i>-</i>LEAN</span><span class="bs">be lean. · Busch LEAN</span></span></span>`);a.innerHTML=homeV()}
+ renderNav();
+ if(V.view==='home'){h.innerHTML=hdr(`<span class="brand">${BMARK}<span><span class="bt">B<i>-</i>LEAN</span><span class="bs">be lean. · Busch LEAN</span></span></span>`,null,null,`<button class="thm" title="Hell / Dunkel" onclick="cycleTheme()">${THM[window.__theme||'auto'][0]}</button>`);a.innerHTML=homeV()}
  else if(V.view==='lib'){h.innerHTML=hdr('Werkzeuge & Anleitungen',"go('home')");a.innerHTML=libV()}
- else if(V.view==='project'){h.innerHTML=hdr(esc(P().name),"go('home')");a.innerHTML=projectV(P())}
+ else if(V.view==='project'){h.innerHTML=hdr('Projekt',"go('home')");a.innerHTML=projectV(P())}
  else if(V.view==='tool'){const p=P();if(!p)return go('home');const t=TOOLS[V.tool];h.innerHTML=hdr(V.coach?'🎓 Coaching-Kata':t.icon+' '+t.name,toolBack(),V.coach?null:V.tool);a.innerHTML=R[V.tool](p)}
 }
 
@@ -328,11 +355,12 @@ function projCard(p){
 }
 function homeV(){
  const ps=S.projects.slice().sort((a,b)=>(b.updated||b.created)-(a.updated||a.created));
- const warn=STORE_OK?'':`<div class="card" style="border-color:var(--bad);background:#fde2e1;color:#7f1d1d"><b>⚠️ Dieser Browser speichert nichts dauerhaft.</b><div class="sm" style="margin-top:4px">Alles, was du hier anlegst, ist beim Schließen weg. Öffne die App über <b>bup97.github.io/Busch-lean</b> in Safari (nicht im privaten Modus) oder über das Symbol auf dem Home-Bildschirm.</div></div>`;
+ const warn=STORE_OK?'':`<div class="card" style="border-color:var(--bad);background:var(--wbg);color:var(--wtx)"><b>⚠️ Dieser Browser speichert nichts dauerhaft.</b><div class="sm" style="margin-top:4px">Alles, was du hier anlegst, ist beim Schließen weg. Öffne die App über <b>bup97.github.io/Busch-lean</b> in Safari (nicht im privaten Modus) oder über das Symbol auf dem Home-Bildschirm.</div></div>`;
  const add=`<div class="row gap" style="flex-wrap:nowrap;margin-top:12px"><input id="np" placeholder="Neues Projekt, z. B. Endmontage" onkeydown="if(event.key==='Enter')addP()"><button class="btn pri" onclick="addP()">＋ Anlegen</button></div>`;
  const head=ps.length?`<div class="row" style="margin:6px 2px 12px"><div><div style="font-size:24px;font-weight:800;line-height:1.15">Meine Projekte</div></div><span class="pcount">${ps.length}</span></div>`
   :`<section class="hero"><h1>Prozesse analysieren.<br>Verschwendung sichtbar machen.</h1><p class="mut">Alle Lean-Werkzeuge pro Projekt – jeweils mit Kurzanleitung. Lege unten dein erstes Projekt an.</p></section>`;
  return warn+head+ps.map(projCard).join('')+add+`
+ <h2>Darstellung</h2><div class="seg">${Object.entries(THM).map(([k,v])=>`<button class="${(window.__theme||'auto')===k?'on':''}" onclick="setTheme('${k}')">${v[0]} ${v[1]}</button>`).join('')}</div>
  <h2>Mehr</h2><div class="card link row" onclick="go('lib')"><span>📘 Lean-Werkzeuge & Kurzanleitungen</span><span class="mut">›</span></div>
  <div class="card"><b>Datensicherung</b><p class="mut sm" style="margin:4px 0 10px">Die Daten liegen nur auf diesem Gerät. Exportiere regelmäßig eine Sicherung.</p><div class="row gap"><button class="btn sm" onclick="exportData()">⬇︎ Exportieren</button><label class="btn sm">⬆︎ Importieren<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div></div>`;
 }
@@ -344,27 +372,34 @@ function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReade
 
 const STAT={vsm:p=>`Ist ${vcomp(p.vsm.ist)}% · Soll ${vcomp(p.vsm.soll)}%`,muda:p=>`${p.muda.obs.length} Beobachtungen`,time:p=>`${p.muda.laps.length} Abschnitte`,spag:p=>`${fmt(spagDist(p.spag),0)} m je Zyklus`,greif:p=>`${p.greifLive.taps.length} Griffe · ${p.greifLive.cycles} Zyklen`,ishi:p=>`${p.ishi.causes.length} Ursachen`,why:p=>`${p.whys.length} Analysen`,s5:p=>{const a=p.audits[p.audits.length-1];return a?`Letztes: ${fmt(s5calc(a).total,0)}%`:'Noch kein Audit'},act:p=>`${p.actions.filter(a=>a.status==='erledigt').length}/${p.actions.length} erledigt`,notes:p=>`${p.notes.length} Notizen`,kata:p=>{const a=p.kata.tcs.filter(t=>t.status==='aktiv'),d=a.filter(t=>t.nextCoach&&t.nextCoach<=today()).length;return d?`🎓 ${d} Coaching fällig`:`${a.length} Zielzustand${a.length===1?'':'e'} aktiv`},prob:p=>`${p.problems.filter(x=>x.status!=='gelöst').length} offen · ${p.problems.length} gesamt`,talk:p=>`${p.talks.filter(t=>t.status==='neu'||t.status==='in Prüfung').length} offen · ${p.talks.length} gesamt`};
 
+function todoItems(p){const td=today(),in3=new Date(Date.now()+3*864e5).toISOString().slice(0,10),it=[];
+ p.kata.tcs.filter(t=>t.status==='aktiv'&&t.nextCoach&&t.nextCoach<=td).forEach(t=>it.push({ic:'🎓',b:'Coaching fällig: '+t.title,s:t.learner?'mit '+t.learner:'Coaching-Zyklus starten',on:`kStartCoach('${t.id}')`,late:t.nextCoach<td}));
+ p.actions.filter(a=>a.status!=='erledigt'&&a.due&&a.due<td).sort((a,b)=>a.due.localeCompare(b.due)).forEach(a=>it.push({ic:'⚠️',b:a.text,s:`überfällig seit ${dDE(a.due+'T12:00')}${a.who?' · '+a.who:''}`,on:"V.af='offen';openT('act')",late:1}));
+ p.actions.filter(a=>a.status!=='erledigt'&&a.due&&a.due>=td&&a.due<=in3).sort((a,b)=>a.due.localeCompare(b.due)).forEach(a=>it.push({ic:'📅',b:a.text,s:`fällig ${a.due===td?'heute':dDE(a.due+'T12:00')}${a.who?' · '+a.who:''}`,on:"V.af='offen';openT('act')"}));
+ p.problems.filter(x=>x.status!=='gelöst'&&!p.actions.some(a=>a.pid===x.id)).forEach(x=>it.push({ic:'🎯',b:x.title,s:'Problem ohne Maßnahme',on:`V.prid='${x.id}';openT('prob',1)`}));
+ p.talks.filter(t=>t.kind!=='positiv'&&!t.feedback&&(t.status==='umgesetzt'||t.status==='abgelehnt')).forEach(t=>it.push({ic:'💬',b:'Rückmeldung geben: '+t.text,s:(t.anon?'anonym':t.person||'')+(t.station?' · '+t.station:''),on:"V.tf='fb';openT('talk')"}));
+ return it}
+function projEdit(){const p=P();modal(`<h2>✏️ Projekt bearbeiten</h2>${fld('Projektname','name',p.name)}<div style="height:10px"></div>${area('Beschreibung / Ziel','desc',p.desc,'z. B. Durchlaufzeit Endmontage um 30 % senken',3)}<button class="btn pri wide" onclick="closeM();render()">Fertig</button><button class="btn del wide" onclick="closeM();delP()">Projekt löschen</button>`)}
+const SHORT={muda:'Muda',greif:'Greifraum',talk:'Gespräche',spag:'Spaghetti',act:'Maßnahmen',time:'Zeitaufnahme'};
+const GROUPS=[['Verbessern',['kata','prob','act']],['Analysieren',['vsm','muda','time','spag','greif']],['Ursachen finden',['ishi','why']],['Standards & Team',['s5','talk','notes']]];
+const ALERT={kata:p=>p.kata.tcs.some(t=>t.status==='aktiv'&&t.nextCoach&&t.nextCoach<=today()),act:p=>p.actions.some(a=>a.status!=='erledigt'&&a.due&&a.due<today()),prob:p=>p.problems.some(x=>x.status!=='gelöst'&&!p.actions.some(a=>a.pid===x.id))};
 function projectV(p){
- const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll);
- const dlzRed=isFinite(ci.invDays)&&ci.invDays>0&&isFinite(cs.invDays)&&cs.invDays>0?(1-cs.invDays/ci.invDays)*100:NaN;
- const kp=(l,a,b,u,d)=>`<div class="kpi"><span>${l}</span><b>${a}<small> ${u}</small></b><i>Soll: ${b} ${u}</i></div>`;
- return `<div class="card">${fld('Projektname','name',p.name)}<div style="height:8px"></div>${area('Beschreibung / Ziel','desc',p.desc,'z. B. Durchlaufzeit Endmontage um 30 % senken',2)}</div>
- ${kataCard(p)}<h2>Ergebniskennzahlen (Ist)</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
- <h2>Fortschritt</h2><div class="card">
-  ${progRow('Ist-Aufnahme vollständig',k.compl+' %',k.compl)}
-  ${progRow('Soll-Zustand definiert',sollC+' %',sollC)}
-  ${progRow('Maßnahmen umgesetzt',`${k.done} / ${k.total}`,pct(k.done,k.total))}
-  ${isFinite(dlzRed)?`<p class="sm" style="margin:8px 0 0">Geplante DLZ-Reduktion Ist → Soll: <b class="${dlzRed>0?'good':'badc'}">${fmt(dlzRed,0)} %</b></p>`:''}
- </div>
- <button class="btn wide" style="margin:0 0 4px" onclick="exportXlsx()">📊 Excel-Export mit Diagrammen</button>
- <h2>Werkzeuge</h2><div class="tiles">${ORDER.map(id=>{const t=TOOLS[id];return `<div class="tile" onclick="openT('${id}')"><div class="ic">${t.icon}</div><b>${t.name}</b><span class="mut sm">${STAT[id](p)}</span></div>`}).join('')}</div>
- <div style="margin-top:24px"><button class="btn del sm" onclick="delP()">Projekt löschen</button></div>`;
+ const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sollC=vcomp(p.vsm.soll),c=pcol(p),ini=p.name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+ const todo=todoItems(p),kp=(l,a,b,u)=>`<div class="kpi"><span>${l}</span><b>${a}<small> ${u}</small></b><i>Soll: ${b} ${u}</i></div>`;
+ const mini=(l,v,pc)=>`<div class="pm"><div class="row"><span>${l}</span><b>${v}</b></div>${bar(pc,c)}</div>`;
+ return `<div class="phead" style="--pc:${c}"><div class="pav">${esc(ini)}</div><div style="min-width:0"><h1>${esc(p.name)}</h1>${p.desc?`<div class="mut sm">${esc(p.desc)}</div>`:''}</div><button class="ib ed" title="Projekt bearbeiten" style="font-size:18px" onclick="projEdit()">✏️</button></div>
+ <h2>Heute zu tun</h2><div class="card">${todo.slice(0,6).map(t=>`<div class="todo${t.late?' late':''}" onclick="${t.on}"><span class="ti">${t.ic}</span><div class="tt"><b>${esc(t.b)}</b><span class="mut sm${t.late?' over':''}">${esc(t.s)}</span></div><span class="mut">›</span></div>`).join('')||'<div class="mut sm" style="padding:6px 2px">✓ Nichts Dringendes – alle Termine im grünen Bereich.</div>'}${todo.length>6?`<div class="mut sm" style="padding-top:6px">+ ${todo.length-6} weitere</div>`:''}</div>
+ ${kataCard(p)}
+ <h2>Werkzeuge</h2>${GROUPS.map(([g,ids])=>`<div class="mut sm" style="font-weight:700;margin:12px 2px 6px">${g}</div><div class="tgrp">${ids.map(id=>{const t=TOOLS[id];return `<div class="tl2" onclick="openT('${id}')"><span class="ic">${t.icon}</span><div style="min-width:0"><b>${SHORT[id]||t.name}</b><small>${STAT[id](p)}</small></div>${ALERT[id]&&ALERT[id](p)?'<em></em>':''}</div>`}).join('')}</div>`).join('')}
+ <h2>Kennzahlen</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
+ <div class="card" style="margin-top:8px"><div class="minis">${mini('Ist-Aufnahme',k.compl+' %',k.compl)}${mini('Soll-Zustand',sollC+' %',sollC)}${mini('Maßnahmen',k.done+'/'+k.total,pct(k.done,k.total))}</div></div>
+ <h2>Export</h2><div class="row gap" style="flex-wrap:nowrap"><button class="btn" style="flex:1;white-space:nowrap" onclick="exportXlsx()">📊 Excel</button><button class="btn" style="flex:1;white-space:nowrap" onclick="V.vv='ist';plotModal()">🖨️ Plotten</button></div>`;
 }
 const progRow=(l,v,p)=>`<div class="prog"><div class="row"><span>${l}</span><b>${v}</b></div>${bar(p)}</div>`;
 
 /* ===== Notizen (auch pro Werkzeug) ===== */
 function noteCard(p,n){return `<div class="card"><div class="row"><span class="mut sm">${new Date(n.t).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}${n.tag&&TOOLS[n.tag]?' · '+TOOLS[n.tag].icon+' '+TOOLS[n.tag].name:''}</span><button class="ib" onclick="delNote('${n.id}')">✕</button></div><div class="note">${esc(n.text)}</div></div>`}
-function notesBox(p,tool){const ns=p.notes.filter(n=>n.tag===tool).sort((a,b)=>b.t-a.t);return `<h2>Notizen</h2><div class="card"><textarea id="nb" rows="2" placeholder="Notiz zu ${TOOLS[tool].name}…"></textarea><div style="margin-top:8px"><button class="btn sm" onclick="addNote('${tool}','nb')">+ Notiz hinzufügen</button></div></div>${ns.map(n=>noteCard(p,n)).join('')}`}
+function notesBox(p,tool){const ns=p.notes.filter(n=>n.tag===tool).sort((a,b)=>b.t-a.t);return `<details class="card nbox" style="margin-top:18px"${V.nOpen===tool?' open':''} ontoggle="V.nOpen=this.open?'${tool}':null"><summary><b>📝 Notizen${ns.length?` <span class="chip">${ns.length}</span>`:''}</b></summary><textarea id="nb" rows="2" style="margin-top:10px" placeholder="Notiz zu ${TOOLS[tool].name}…"></textarea><div style="margin-top:8px"><button class="btn sm" onclick="V.nOpen='${tool}';addNote('${tool}','nb')">+ Notiz hinzufügen</button></div>${ns.map(n=>`<div style="border-top:1px solid var(--bd);margin-top:10px;padding-top:8px"><div class="row"><span class="mut sm">${new Date(n.t).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}</span><button class="ib" onclick="V.nOpen='${tool}';delNote('${n.id}')">✕</button></div><div class="note">${esc(n.text)}</div></div>`).join('')}</details>`}
 function addNote(tag,el){const e=document.getElementById(el),t=e.value.trim();if(!t)return;P().notes.push({id:uid(),text:t,tag:tag||'',t:Date.now()});save();render();toast('Notiz gespeichert')}
 function delNote(id){if(!confirm('Notiz löschen?'))return;const p=P();p.notes=p.notes.filter(n=>n.id!==id);save();render()}
 function notesV(p){const ns=p.notes.slice().sort((a,b)=>b.t-a.t);return intro('notes')+`<div class="card"><textarea id="nt" rows="4" placeholder="Beobachtung, Idee, Gesprächsnotiz…"></textarea><div class="row" style="margin-top:8px"><select id="ng" style="flex:1">${opt('','Allgemein','')}${ORDER.filter(x=>x!=='notes').map(id=>opt(id,TOOLS[id].name,'')).join('')}</select><button class="btn pri" onclick="addNote(document.getElementById('ng').value,'nt')">Speichern</button></div></div>${ns.map(n=>noteCard(p,n)).join('')||'<div class="empty">Noch keine Notizen.</div>'}`}
@@ -621,7 +656,7 @@ function greifV(p){
  <div class="row gap"><button class="btn sm" onclick="gUndo()">↶ Rückgängig</button><button class="btn sm pri" style="flex:1" onclick="gCycle()">✓ Zyklus ${g.cycles+1} fertig</button></div>
  <p class="mut sm" style="margin:8px 4px 0">${V.gpart?`Griffe werden <b>${esc(V.gpart)}</b> zugeordnet. Teil nochmal antippen = ohne Teil.`:'Optional oben ein Teil wählen – dann werden die Griffe diesem Teil zugeordnet.'}</p></div>
  <h2>Auswertung</h2><div class="kpis"><div class="kpi"><span>Griffe gesamt</span><b>${all}</b><i>${g.cycles} Zyklen abgeschlossen</i></div><div class="kpi"><span>Griffe je Zyklus</span><b>${g.cycles?fmt(done/g.cycles,1):'–'}</b></div><div class="kpi"><span>Anteil A+B</span><b class="${all&&good<80?'badc':''}">${fmt(good,0)}<small> %</small></b><i>Ziel ≥ 80 %</i></div><div class="kpi"><span>Greif-Index</span><b>${fmt(idx,2)}</b><i>1 = ideal · 5 = hinter sich</i></div></div>
- ${c.H?`<div class="intro" style="background:#fde2e1;color:#7f1d1d;margin-top:8px"><span>⚠️ ${c.H}× hinter sich gegriffen – Rumpfdrehung belastet den Rücken. Teile nach vorne holen.</span></div>`:''}
+ ${c.H?`<div class="intro" style="background:var(--wbg);color:var(--wtx);margin-top:8px"><span>⚠️ ${c.H}× hinter sich gegriffen – Rumpfdrehung belastet den Rücken. Teile nach vorne holen.</span></div>`:''}
  ${all?`<div class="card" style="margin-top:8px"><div class="stack">${ZONES.map(z=>c[z[0]]?`<i style="width:${pct(c[z[0]],all)}%;background:${z[3]}"></i>`:'').join('')}</div>${ZONES.map(z=>`<div class="row sm"><span><b>${z[0]}</b> ${z[1]} – <span class="mut">${z[2]}</span></span><b>${c[z[0]]} · ${fmt(pct(c[z[0]],all),0)} %</b></div>`).join('')}</div>`:''}
  ${rows.length&&!(rows.length===1&&rows[0].part==='ohne Teil')?`<h2>Nach Teil</h2>${rows.map(r=>`<div class="card"><div class="row"><b>${esc(r.part)}</b><span class="sm">${r.n} Griffe${isFinite(r.per)?` · Ø ${fmt(r.per,1)}/Zyklus`:''}</span></div><div class="stack">${ZONES.map(z=>r.c[z[0]]?`<i style="width:${pct(r.c[z[0]],r.n)}%;background:${z[3]}"></i>`:'').join('')}</div><div class="row"><span class="mut sm">${ZONES.filter(z=>r.c[z[0]]).map(z=>z[0]+' '+r.c[z[0]]).join(' · ')}</span>${r.bad>=.5&&r.part!=='ohne Teil'?`<button class="btn sm" onclick="addAction(${esc(JSON.stringify(r.part+' näher in den Greifraum A/B bringen ('+fmt(r.bad*100,0)+' % der Griffe in C/D/H)'))},'Greifraum')">→ Maßnahme</button>`:''}</div></div>`).join('')}`:''}
  ${all?`<button class="btn del sm" onclick="gReset()">Live-Aufnahme zurücksetzen</button>`:''}
@@ -1035,7 +1070,7 @@ function kataV(p){
  if(V.coach&&tcById(V.coach.tcId))return coachV(p,tcById(V.coach.tcId));V.coach=null;
  const tc=curTc();if(tc)return tcDetail(p,tc);V.tcid=null;
  const k=p.kata,list=k.tcs.slice().sort((a,b)=>TCST.indexOf(a.status)-TCST.indexOf(b.status)||b.created-a.created),due=k.tcs.filter(t=>t.status==='aktiv'&&t.nextCoach&&t.nextCoach<=today());
- return intro('kata')+kataPattern(p)+(due.length?`<div class="intro" style="background:#fef3c7;color:#92400e"><span>🎓 Coaching fällig: ${due.map(t=>esc(t.title)+(t.learner?' ('+esc(t.learner)+')':'')).join(', ')}</span><button class="lnk" onclick="kStartCoach('${due[0].id}')">Starten</button></div>`:'')+
+ return intro('kata')+kataPattern(p)+(due.length?`<div class="intro" style="background:var(--abg);color:var(--atx)"><span>🎓 Coaching fällig: ${due.map(t=>esc(t.title)+(t.learner?' ('+esc(t.learner)+')':'')).join(', ')}</span><button class="lnk" onclick="kStartCoach('${due[0].id}')">Starten</button></div>`:'')+
  `<h2>1 · Richtung / Challenge</h2><div class="card"><label class="f"><span>Wo wollen wir in 6–12 Monaten hin?</span><textarea id="kch" rows="2" placeholder="z. B. Einzelstückfluss in der Endmontage im Kundentakt, DLZ unter 2 Tagen" oninput="upd('kata.challenge',this.value)">${esc(k.challenge)}</textarea></label><div style="margin-top:8px">${fld('Zieltermin','kata.challengeBy',k.challengeBy,{type:'date'})}</div></div>
  <h2>2 · Ist-Zustand</h2><div class="card row"><span class="sm">Ist-Zustand im Wertstrom erfasst: <b>${vcomp(p.vsm.ist)} %</b> · DLZ ${fmt(vcalc(p.vsm.ist).invDays,1)} AT</span><button class="btn sm" onclick="openT('vsm')">Wertstrom ›</button></div>
  <h2>3 · Zielzustände</h2>${list.map(tc=>{const m=tc.metrics[0],pg=m?mProg(tc,m):NaN,ob=tc.obstacles.find(o=>o.focus);return `<div class="card link" onclick="kOpenTc('${tc.id}')"><div class="row"><b style="font-size:16px">${esc(tc.title)}</b><span class="st ${tc.status==='aktiv'?'arbeit':tc.status==='erreicht'?'erledigt':'abgelehnt'}">${tc.status}</span></div>
@@ -1102,6 +1137,18 @@ function cFinish(){const p=P(),k=p.kata,c=V.coach,a=c.a,tc=tcById(c.tcId),now=Da
  if(a.when)tc.nextCoach=a.when;
  k.sessions.push({id:uid(),tcId:tc.id,learner:tc.learner,t:now,answers:{...a,obstacleText:(tc.obstacles.find(o=>o.id===a.focus)||{}).text||''},meas:{...c.m}});
  V.coach=null;save();render();scrollTo(0,0);toast('Coaching-Zyklus gespeichert')}
+
+/* ===== Darstellung & Navigation ===== */
+const THM={auto:['🌓','Automatisch'],light:['☀️','Hell'],dark:['🌙','Dunkel']};
+function applyTheme(){const t=window.__theme||'auto',d=t==='dark'||(t==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');const m=document.querySelector('meta[name=theme-color]');if(m)m.content=d?'#1a2025':'#ffffff'}
+function setTheme(t){window.__theme=t;try{localStorage.setItem('bl_theme',t)}catch(e){}applyTheme();render();toast('Darstellung: '+THM[t][1])}
+function cycleTheme(){const o=['auto','light','dark'];setTheme(o[(o.indexOf(window.__theme||'auto')+1)%3])}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if((window.__theme||'auto')==='auto'){applyTheme();render()}})}catch(e){}
+function renderNav(){const n=$('#bnav'),p=P(),on=V.view==='project'||V.view==='tool';document.body.classList.toggle('hasnav',!!(on&&p));if(!on||!p){n.innerHTML='';return}
+ const cur=V.view==='project'?'proj':V.tool,late=p.actions.filter(a=>a.status!=='erledigt'&&a.due&&a.due<today()).length,due=p.kata.tcs.filter(t=>t.status==='aktiv'&&t.nextCoach&&t.nextCoach<=today()).length,op=p.problems.filter(x=>x.status!=='gelöst').length;
+ const b=(id,ic,l,cl,badge)=>`<button class="${cur===id?'on':''}" onclick="${cl}"><span>${ic}</span>${l}${badge?`<em>${badge}</em>`:''}</button>`;
+ n.innerHTML=b('proj','🏠','Projekt',"go('project')")+b('kata','🧭','Kata',"openT('kata')",due)+b('prob','🎯','Probleme',"openT('prob')",0)+b('act','✅','Maßnahmen',"V.af='offen';openT('act')",late)+`<button onclick="quickNote()"><span>📝</span>Notiz</button>`}
+function quickNote(){const tag=V.view==='tool'&&TOOLS[V.tool]?V.tool:'';modal(`<h2>📝 Schnelle Notiz</h2><p class="mut sm">${tag?'Wird '+TOOLS[tag].name+' zugeordnet.':'Allgemeine Projektnotiz.'}</p><textarea id="qn" rows="5" placeholder="Beobachtung, Idee, Gesprächsnotiz …"></textarea><button class="btn pri wide" onclick="addNote('${tag}','qn');closeM()">Speichern</button>`);setTimeout(()=>{const e=$('#qn');if(e)e.focus()},50)}
 
 const R={kata:kataV,prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
