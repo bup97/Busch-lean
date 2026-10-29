@@ -228,6 +228,7 @@ const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,p||
 const opt=(v,l,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
 const ARROW='<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>';
 
+const APPVER='17 · 29.10.2026';
 const KEY='buschlean_v2';
 let S;
 let STORE_OK=true;
@@ -362,7 +363,7 @@ function homeV(){
  return warn+head+ps.map(projCard).join('')+add+`
  <h2>Darstellung</h2><div class="seg">${Object.entries(THM).map(([k,v])=>`<button class="${(window.__theme||'auto')===k?'on':''}" onclick="setTheme('${k}')">${v[0]} ${v[1]}</button>`).join('')}</div>
  <h2>Mehr</h2><div class="card link row" onclick="go('lib')"><span>📘 Lean-Werkzeuge & Kurzanleitungen</span><span class="mut">›</span></div>
- <div class="card"><b>Datensicherung</b><p class="mut sm" style="margin:4px 0 10px">Die Daten liegen nur auf diesem Gerät. Exportiere regelmäßig eine Sicherung.</p><div class="row gap"><button class="btn sm" onclick="exportData()">⬇︎ Exportieren</button><label class="btn sm">⬆︎ Importieren<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div></div>`;
+ <div class="card"><b>Datensicherung</b><span class="mut sm" style="float:right">Version ${APPVER}</span><p class="mut sm" style="margin:4px 0 10px">Die Daten liegen nur auf diesem Gerät. Exportiere regelmäßig eine Sicherung.</p><div class="row gap"><button class="btn sm" onclick="exportData()">⬇︎ Exportieren</button><label class="btn sm">⬆︎ Importieren<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div></div>`;
 }
 function libV(){return ORDER.map(id=>{const t=TOOLS[id];return `<div class="card link" onclick="guide('${id}')"><div class="row"><b>${t.icon} ${t.name}</b><span class="lnk">Anleitung ›</span></div><div class="mut sm">${t.short}</div></div>`}).join('')}
 function addP(){const e=$('#np'),n=e.value.trim();if(!n){e.focus();return}const p=newProject(n);S.projects.push(p);save();openP(p.id)}
@@ -986,8 +987,8 @@ function plotModal(){const p=P();V.pz=V.pz||V.vv;V.pf=V.pf||'A3';const ok=k=>p.v
  modal(`<h2>🖨️ Wertstrom plotten</h2><p class="mut sm">Druckfertiges Blatt im Querformat als Vektorgrafik – bleibt auch beim Hochskalieren auf A1 scharf.</p>
  <h3>Zustand</h3>${seg('pz',[['ist','Ist'],['soll','Soll'],['beide','Ist + Soll']])}<h3>Format</h3>${seg('pf',[['A3','A3 quer'],['A4','A4 quer']])}
  ${(V.pz==='beide'?['ist','soll']:[V.pz]).some(ok)?'':'<p class="over sm">Für diesen Zustand gibt es noch keine Prozessschritte.</p>'}
- <button class="btn pri wide" onclick="vsmPrint()">Drucken / als PDF sichern</button><button class="btn wide" onclick="vsmSvg()">SVG-Datei (Vektor) herunterladen</button>
- <p class="mut sm" style="margin-top:10px">Tipp: Im Druckdialog „Als PDF sichern“ bzw. auf dem iPhone Teilen → „In Dateien sichern“. Für den Plotter das PDF oder die SVG-Datei verwenden und dort die Papiergröße wählen.</p>`)}
+ <button class="btn pri wide" onclick="vsmPdf()">📄 PDF erstellen</button><button class="btn wide" onclick="vsmSvg()">SVG-Datei (Vektor) herunterladen</button>${navigator.standalone?'':'<button class="btn wide" onclick="vsmPrint()">Über Browser drucken</button>'}
+ <p class="mut sm" style="margin-top:10px">Das PDF kannst du über Teilen → „In Dateien sichern“ ablegen, per Mail schicken oder drucken. Für den Plotter ideal: die SVG-Datei – sie ist reine Vektorgrafik und bleibt in jeder Größe scharf.</p>`)}
 function plotStates(){const p=P();return(V.pz==='beide'?['ist','soll']:[V.pz]).filter(k=>p.vsm[k].steps.length)}
 function vsmPrint(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf];
  let host=$('#printhost');if(!host){host=document.createElement('div');host.id='printhost';document.body.appendChild(host)}host.className='xl';
@@ -995,6 +996,29 @@ function vsmPrint(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Proz
  let st=$('#pagesize');if(!st){st=document.createElement('style');st.id='pagesize';document.head.appendChild(st)}st.textContent=`@page{size:${f.n} landscape;margin:8mm}`;
  closeM();setTimeout(()=>{window.print()},150)}
 window.addEventListener('afterprint',()=>{const h=$('#printhost');if(h)h.innerHTML=''});
+function pdfFromJpegs(pages,pw,ph){
+ const enc=new TextEncoder(),parts=[],offs=[];let len=0;const add=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);len+=b.length};
+ const obj=(n,body)=>{offs[n]=len;add(`${n} 0 obj\n`);body.forEach(add);add('\nendobj\n')};
+ add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');const n=pages.length,kids=pages.map((_,i)=>`${3+i*3} 0 R`).join(' ');
+ obj(1,['<< /Type /Catalog /Pages 2 0 R >>']);obj(2,[`<< /Type /Pages /Kids [${kids}] /Count ${n} >>`]);
+ pages.forEach((pg,i)=>{const po=3+i*3,co=po+1,io=po+2,m=22.68,aw=pw-2*m,ah=ph-2*m,k=Math.min(aw/pg.w,ah/pg.h),w=pg.w*k,h=pg.h*k,x=(pw-w)/2,y=(ph-h)/2;
+  const cs=`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm /Im0 Do Q`;
+  obj(po,[`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw.toFixed(2)} ${ph.toFixed(2)}] /Resources << /XObject << /Im0 ${io} 0 R >> >> /Contents ${co} 0 R >>`]);
+  obj(co,[`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`]);
+  obj(io,[`<< /Type /XObject /Subtype /Image /Width ${pg.pw} /Height ${pg.ph} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${pg.bytes.length} >>\nstream\n`,pg.bytes,'\nendstream'])});
+ const total=3+n*3,xo=len;let xr=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)xr+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+ add(xr+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xo}\n%%EOF`);
+ const out=new Uint8Array(len);let o=0;parts.forEach(b=>{out.set(b,o);o+=b.length});return out}
+async function vsmPdf(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf],pt=72/25.4,pw=(f.w+16)*pt,ph=(f.h+16)*pt;
+ toast('PDF wird erstellt …');
+ try{const pages=[];for(const k of ks){const{xml,W,H}=inlineSvg(vsmSheet(p,k)),sc=Math.min(2.8,Math.sqrt(14e6/(W*H)));
+  const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Grafik konnte nicht gezeichnet werden'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)});
+  const cv=document.createElement('canvas');cv.width=Math.round(W*sc);cv.height=Math.round(H*sc);const cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0,cv.width,cv.height);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',.92));if(!blob)throw new Error('Bild zu groß für dieses Gerät');
+  pages.push({bytes:new Uint8Array(await blob.arrayBuffer()),w:W,h:H,pw:cv.width,ph:cv.height});cv.width=cv.height=0}
+  const bytes=pdfFromJpegs(pages,pw,ph),nm=`Wertstrom_${ks.length>1?'Ist-Soll':ks[0]==='ist'?'Ist':'Soll'}_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.pdf`;
+  offerFile(new File([bytes],nm,{type:'application/pdf'}),'📄 PDF fertig',`${f.n} quer · ${ks.length} Seite${ks.length>1?'n':''} · ${(bytes.length/1048576).toFixed(1)} MB`)}
+ catch(e){console.error(e);alert('PDF konnte nicht erstellt werden: '+e.message)}}
 function vsmSvg(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf],k=ks[0];
  const{xml}=inlineSvg(vsmSheet(p,k)),out='<?xml version="1.0" encoding="UTF-8"?>\n'+xml.replace(/<svg ([^>]*?)width="[\d.]+" height="[\d.]+"/,`<svg $1`).replace('<svg ',`<svg width="${f.w+16}mm" height="${f.h+16}mm" `).replace(/(<svg[^>]*?) style="[^"]*"/,'$1');
  offerFile(new File([out],`Wertstrom_${k==='ist'?'Ist':'Soll'}_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.svg`,{type:'image/svg+xml'}),'🗺️ SVG-Datei fertig',ks.length>1?'Hinweis: Die SVG-Datei enthält nur den Ist-Zustand – für den Soll-Zustand oben „Soll“ wählen.':'Vektorgrafik im Format '+f.n+' quer.')}
@@ -1157,7 +1181,8 @@ function quickNote(){const tag=V.view==='tool'&&TOOLS[V.tool]?V.tool:'';modal(`<
 
 const R={kata:kataV,prob:probV,talk:talkV,vsm:vsmV,muda:mudaV,time:timeV,spag:spagV,greif:greifV,ishi:ishiV,why:whyV,s5:s5V,act:actV,notes:notesV};
 storeTest();persist();load();if(S.last&&S.projects.some(p=>p.id===S.last)){V.pid=S.last;V.view='project'}render();
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update()})}).catch(()=>{})});
+ let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded||!navigator.serviceWorker.controller)return;reloaded=true;if(!$('#modal').classList.contains('hidden')||V.coach)return;location.reload()})}
 </script>
 </body>
 </html>
