@@ -116,6 +116,9 @@ body.hasnav #bnav{display:flex}body.hasnav main{padding-bottom:calc(env(safe-are
 .minis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 details.nbox>summary{list-style:none;display:flex;justify-content:space-between;align-items:center}details.nbox>summary::-webkit-details-marker{display:none}
 details.nbox>summary:after{content:'＋';color:var(--pri);font-weight:800}details.nbox[open]>summary:after{content:'－'}
+.vsm.arr{height:auto;max-width:none;display:block;-webkit-user-select:none;user-select:none}
+input[type=range]{-webkit-appearance:auto;appearance:auto;accent-color:var(--pri);padding:0;border:0;background:none;width:100%}.vsm.arr [data-drag]{cursor:grab}
+.vsm.arr [data-drag] rect.bx,.vsm.arr [data-drag] .fac,.vsm.arr [data-drag] rect.sum{stroke:var(--pri);stroke-dasharray:5 3;stroke-width:2}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
 .tile .ic{font-size:24px}
@@ -228,7 +231,7 @@ const bar=(p,c)=>`<div class="bar"><i style="width:${Math.max(0,Math.min(100,p||
 const opt=(v,l,cur)=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(l)}</option>`;
 const ARROW='<marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>';
 
-const APPVER='17 · 29.10.2026';
+const APPVER='18 · 29.10.2026';
 const KEY='buschlean_v2';
 let S;
 let STORE_OK=true;
@@ -469,7 +472,7 @@ function vsmV(p){
  V.live=()=>{const e=$('#live');if(e)e.innerHTML=liveBar(P().vsm[V.vv])};
  const seg=`<div class="seg">${[['ist','Ist-Zustand'],['soll','Soll-Zustand']].map(([k,l])=>`<button class="${V.vv===k?'on':''}" onclick="V.vv='${k}';render()">${l}</button>`).join('')}</div>`;
  const tabs=`<div class="tabs">${[['daten','Daten'],['karte','Karte'],['kpi','Kennzahlen'],['check','Checkliste']].map(([k,l])=>`<button class="${V.vt===k?'on':''}" onclick="V.vt='${k}';render()">${l}</button>`).join('')}</div>`;
- const body=V.vt==='daten'?vsmData(v):V.vt==='karte'?vsmMap(v,c):V.vt==='kpi'?vsmKpi(p):vsmCheck(v);
+ const body=V.vt==='daten'?vsmData(v):V.vt==='karte'?vsmKarte(v,c):V.vt==='kpi'?vsmKpi(p):vsmCheck(v);
  return intro('vsm')+`<div class="row gap" style="margin:-4px 0 10px;flex-wrap:nowrap"><button class="btn sm" style="flex:1" onclick="plotModal()">🖨️ Plotten / PDF</button><button class="btn sm" style="flex:1" onclick="aiModal()">🤖 KI fragen</button></div>`+seg+tabs+`<div id="live">${liveBar(v)}</div>`+body+notesBox(p,'vsm');
 }
 function vsmData(v){
@@ -495,41 +498,65 @@ function copyIst(){const p=P();const has_=p.vsm.soll.steps.length||p.vsm.soll.cu
 
 function factory(x,y,name,sub){return `<path class="fac" d="M${x} ${y+60}V${y+22}l24-14v14l24-14v14l24-14v14h38v46z"/><text x="${x+55}" y="${y+42}" text-anchor="middle" class="b">${esc(trunc(name,16))}</text>${sub?`<text x="${x+55}" y="${y+55}" text-anchor="middle" class="sm">${esc(sub)}</text>`:''}`}
 function tri(x,y,inv,days){return `<polygon class="tri" points="${x},${y-17} ${x-15},${y+9} ${x+15},${y+9}"/><text x="${x}" y="${y+5}" text-anchor="middle" class="b">I</text><text x="${x}" y="${y+23}" text-anchor="middle" class="sm">${has(inv)?fmt(num(inv),0)+' Stk':'? Stk'}</text><text x="${x}" y="${y+35}" text-anchor="middle" class="sm">${fmt(days,1)} AT</text>`}
-function vsmMap(v,c){
- const n=v.steps.length;if(!n)return '<div class="empty">Lege zuerst unter „Daten“ Prozessschritte an.</div>';
- const BW=128,G=66,X0=120,W=Math.max(660,X0+n*(BW+G)+G+222),H=446,px=i=>X0+G+i*(BW+G),MY=190;
+function vsmLay(v){const L=v.layout||{};return{G:L.gap||66,ex:id=>(L.ex&&L.ex[id])||0,pos:k=>(L.pos&&L.pos[k])||{dx:0,dy:0}}}
+function vsmSvgStr(v,c,arr){
+ const n=v.steps.length,Ly=vsmLay(v),G=Ly.G,BW=128,X0=120,MY=190,ty=335,gb=v.steps.map(st=>Math.max(40,G+Ly.ex(st.id))),xs=[];
+ let acc=X0;v.steps.forEach((st,i)=>{acc+=gb[i];xs.push(acc);acc+=BW});const px=i=>xs[i],lx=acc,fx=lx+G/2;
+ const sp=Ly.pos('sup'),cu=Ly.pos('cust'),pl=Ly.pos('plan'),sm=Ly.pos('sum');
+ const W=Math.max(660,lx+G+222+Math.max(0,sm.dx),lx+G+140+Math.max(0,cu.dx)),H=446+Math.max(0,sm.dy);
+ const sx0=10+sp.dx,sy0=16+sp.dy,cx0=W-130+cu.dx,cy0=16+cu.dy,ppx=W/2-85+pl.dx,ppy=18+pl.dy;
  let s=`<defs>${ARROW}</defs>`;
- s+=factory(10,16,v.supplier.name||'Lieferant',v.supplier.delivery?'':'');
- s+=factory(W-130,16,v.customer.name||'Kunde',has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':'');
- const ppx=W/2-85;
- s+=`<rect x="${ppx}" y="18" width="170" height="54" rx="4" class="bx"/><text x="${W/2}" y="40" text-anchor="middle" class="b">Produktionsplanung</text><text x="${W/2}" y="57" text-anchor="middle">${esc(trunc(v.info.planning||'–',26))}</text>`;
- s+=`<path d="M${W-130} 44H${ppx+172}" class="info" marker-end="url(#ah)"/><text x="${(W-130+ppx+170)/2}" y="37" text-anchor="middle" class="sm">${esc(trunc(v.info.custOrder,24))}</text>`;
- s+=`<path d="M${ppx} 44H122" class="info" marker-end="url(#ah)"/><text x="${(ppx+120)/2}" y="37" text-anchor="middle" class="sm">${esc(trunc(v.info.suppOrder,24))}</text>`;
- v.steps.forEach((st,i)=>{if(i===0||st.flow==='push')s+=`<path d="M${W/2} 72L${px(i)+BW/2} 162" class="info" marker-end="url(#ah)"/>`});
- s+=`<path d="M65 76V${MY}H${px(0)-G/2-17}" class="mat" marker-end="url(#ah)"/><text x="72" y="104" class="sm">🚚 ${esc(trunc(v.supplier.delivery,14))}</text>`;
+ s+=`<g data-drag="sup">${factory(sx0,sy0,v.supplier.name||'Lieferant','')}<text x="${sx0+62}" y="${sy0+88}" class="sm">🚚 ${esc(trunc(v.supplier.delivery,14))}</text></g>`;
+ s+=`<g data-drag="cust">${factory(cx0,cy0,v.customer.name||'Kunde',has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':'')}</g>`;
+ s+=`<g data-drag="plan"><rect x="${ppx}" y="${ppy}" width="170" height="54" rx="4" class="bx"/><text x="${ppx+85}" y="${ppy+22}" text-anchor="middle" class="b">Produktionsplanung</text><text x="${ppx+85}" y="${ppy+39}" text-anchor="middle">${esc(trunc(v.info.planning||'–',26))}</text></g>`;
+ const ax=cx0,ay=cy0+28,bx=ppx+172,by=ppy+26;s+=`<path d="M${ax} ${ay}L${bx} ${by}" class="info" marker-end="url(#ah)"/><text x="${(ax+bx)/2}" y="${(ay+by)/2-7}" text-anchor="middle" class="sm">${esc(trunc(v.info.custOrder,24))}</text>`;
+ const qx=ppx,qy=ppy+26,rx=sx0+112,ry=sy0+28;s+=`<path d="M${qx} ${qy}L${rx} ${ry}" class="info" marker-end="url(#ah)"/><text x="${(qx+rx)/2}" y="${(qy+ry)/2-7}" text-anchor="middle" class="sm">${esc(trunc(v.info.suppOrder,24))}</text>`;
+ v.steps.forEach((st,i)=>{if(i===0||st.flow==='push')s+=`<path d="M${ppx+85} ${ppy+54}L${px(i)+BW/2} 162" class="info" marker-end="url(#ah)"/>`});
+ s+=`<path d="M${sx0+55} ${sy0+60}V${MY}H${px(0)-gb[0]/2-17}" class="mat" marker-end="url(#ah)"/>`;
  v.steps.forEach((st,i)=>{
-  const x=px(i),cs=c.steps[i],tx=x-G/2,lab={push:'PUSH ⇢',fifo:'FIFO',sm:'⟲ Supermarkt'}[st.flow]||'';
+  const x=px(i),cs=c.steps[i],tx=x-gb[i]/2,lab={push:'PUSH ⇢',fifo:'FIFO',sm:'⟲ Supermarkt'}[st.flow]||'';
   s+=tri(tx,MY,st.inv,cs.days);
   if(i>0)s+=`<path d="M${px(i-1)+BW} ${MY}H${tx-17}" class="mat" marker-end="url(#ah)"/>`;
   s+=`<path d="M${tx+16} ${MY}H${x-2}" class="mat" marker-end="url(#ah)"/>`;
   if(i>0)s+=`<text x="${tx}" y="${MY-26}" text-anchor="middle" class="flow">${lab}</text>`;
-  s+=`<rect x="${x}" y="163" width="${BW}" height="36" rx="3" class="bx${cs.over?' bad':''}"/><text x="${x+BW/2}" y="185" text-anchor="middle" class="b">${esc(trunc(st.name||'Schritt '+(i+1),18))}</text>`;
+  s+=`<g data-drag="step:${st.id}"><rect x="${x}" y="163" width="${BW}" height="36" rx="3" class="bx${cs.over?' bad':''}"/><text x="${x+BW/2}" y="185" text-anchor="middle" class="b">${esc(trunc(st.name||'Schritt '+(i+1),18))}</text>`;
   s+=`<rect x="${x}" y="199" width="${BW}" height="100" class="db"/>`;
-  const L=[['ZZ',has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'–'],['ZZ eff.',isFinite(cs.eff)?tv(cs.eff,c)+' '+c.u:'–'],['RZ',has(st.co)?fmt(num(st.co),1)+' '+(v.coUnit||'min'):'–'],['Verfügb.',has(st.avail)?fmt(num(st.avail),0)+' %':'–'],['MA / Plätze',(has(st.ops)?fmt(num(st.ops),1):'–')+' / '+(st.par||1)],['Los',has(st.lot)?fmt(num(st.lot),0):'–'],['Ausschuss',has(st.scrap)?fmt(num(st.scrap),1)+' %':'–']];
-  L.forEach((r,j)=>{s+=`<text x="${x+6}" y="${214+j*12.5}" class="sm">${r[0]}</text><text x="${x+BW-6}" y="${214+j*12.5}" text-anchor="end">${r[1]}</text>`});
+  const R=[['ZZ',has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'–'],['ZZ eff.',isFinite(cs.eff)?tv(cs.eff,c)+' '+c.u:'–'],['RZ',has(st.co)?fmt(num(st.co),1)+' '+(v.coUnit||'min'):'–'],['Verfügb.',has(st.avail)?fmt(num(st.avail),0)+' %':'–'],['MA / Plätze',(has(st.ops)?fmt(num(st.ops),1):'–')+' / '+(st.par||1)],['Los',has(st.lot)?fmt(num(st.lot),0):'–'],['Ausschuss',has(st.scrap)?fmt(num(st.scrap),1)+' %':'–']];
+  R.forEach((r,j)=>{s+=`<text x="${x+6}" y="${214+j*12.5}" class="sm">${r[0]}</text><text x="${x+BW-6}" y="${214+j*12.5}" text-anchor="end">${r[1]}</text>`});s+='</g>';
  });
- const lx=px(n-1)+BW,fx=lx+G/2;
  s+=`<path d="M${lx} ${MY}H${fx-17}" class="mat" marker-end="url(#ah)"/>`+tri(fx,MY,v.fg,c.fgDays);
- s+=`<path d="M${fx+16} ${MY}H${W-75}V78" class="mat" marker-end="url(#ah)"/><text x="${W-70}" y="${MY-30}" class="sm">🚚 ${esc(trunc(v.customer.delivery,14))}</text>`;
- const ty=335;let d=`M${px(0)-G} ${ty}`,tl='';
- v.steps.forEach((st,i)=>{const x=px(i),cs=c.steps[i];d+=`H${x}V${ty+26}H${x+BW}V${ty}`;tl+=`<text x="${x-G/2}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(cs.days,1)} AT</text><text x="${x+BW/2}" y="${ty+40}" text-anchor="middle" class="sm">${has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'– '+c.u}</text>`});
+ s+=`<path d="M${fx+16} ${MY}H${cx0+55}V${cy0+62}" class="mat" marker-end="url(#ah)"/><text x="${Math.max(fx+22,cx0+60)}" y="${Math.min(MY-30,cy0+90)}" class="sm">🚚 ${esc(trunc(v.customer.delivery,14))}</text>`;
+ let d=`M${px(0)-gb[0]} ${ty}`,tl='';
+ v.steps.forEach((st,i)=>{const x=px(i),cs=c.steps[i];d+=`H${x}V${ty+26}H${x+BW}V${ty}`;tl+=`<text x="${x-gb[i]/2}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(cs.days,1)} AT</text><text x="${x+BW/2}" y="${ty+40}" text-anchor="middle" class="sm">${has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'– '+c.u}</text>`});
  d+=`H${lx+G}`;tl+=`<text x="${fx}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(c.fgDays,1)} AT</text>`;
  s+=`<path d="${d}" class="tl"/>${tl}`;
- const sx=lx+G+10;
- const bx0=sx,by0=ty-34,bl=(y,l,v,sub)=>`<text x="${bx0+10}" y="${y}" class="sm">${l}</text><text x="${bx0+10}" y="${y+15}" class="b">${v}</text>${sub?`<text x="${bx0+10}" y="${y+28}" class="sm">${sub}</text>`:''}`;
- s+=`<rect x="${bx0}" y="${by0}" width="200" height="136" rx="6" class="sum"/>`+bl(by0+16,'Durchlaufzeit',`${fmt(c.invDays,1)} AT`,isFinite(c.invDays)&&isFinite(c.avail)?`= ${fmt(c.invDays*c.avail/3600,1)} h Arbeitszeit`:'')+bl(by0+62,'Bearbeitungszeit',`${tv(c.bz,c,c.u==='s'?0:1)} ${c.u}`,convHT(c.bz,c))+bl(by0+108,'Flussgrad',`${fmt(c.flow,2)} %`,'');
- return `<div class="card scroll"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="vsm">${s}</svg></div><p class="mut sm">Seitlich wischen · Rot umrandet = effektive Zykluszeit über Kundentakt · AT = Arbeitstage (verfügbare Zeit pro Tag laut Schichtmodell).</p>`;
+ const bx0=lx+G+10+sm.dx,by0=ty-34+sm.dy,bl=(y,l,val,sub)=>`<text x="${bx0+10}" y="${y}" class="sm">${l}</text><text x="${bx0+10}" y="${y+15}" class="b">${val}</text>${sub?`<text x="${bx0+10}" y="${y+28}" class="sm">${sub}</text>`:''}`;
+ s+=`<g data-drag="sum"><rect x="${bx0}" y="${by0}" width="200" height="136" rx="6" class="sum"/>`+bl(by0+16,'Durchlaufzeit',`${fmt(c.invDays,1)} AT`,isFinite(c.invDays)&&isFinite(c.avail)?`= ${fmt(c.invDays*c.avail/3600,1)} h Arbeitszeit`:'')+bl(by0+62,'Bearbeitungszeit',`${tv(c.bz,c,c.u==='s'?0:1)} ${c.u}`,convHT(c.bz,c))+bl(by0+108,'Flussgrad',`${fmt(c.flow,2)} %`,'')+'</g>';
+ return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="vsm${arr?' arr':''}"${arr?' onpointerdown="arrDown(event)"':''}>${s}</svg>`;
 }
+function vsmMap(v,c){if(!v.steps.length)return '<div class="empty">Lege zuerst unter „Daten“ Prozessschritte an.</div>';
+ return `<div class="card scroll">${vsmSvgStr(v,c,false)}</div><p class="mut sm">Seitlich wischen · Rot umrandet = effektive Zykluszeit über Kundentakt · AT = Arbeitstage (verfügbare Zeit pro Tag laut Schichtmodell).</p>`}
+function vsmKarte(v,c){if(!v.steps.length)return vsmMap(v,c);const L=vsmLay(v);
+ if(!V.arr)return `<div class="row gap" style="margin-bottom:8px"><button class="btn sm" onclick="V.arr=true;render()">✋ Anordnen</button><span class="mut sm">Bausteine verschieben, Abstände ändern</span></div>`+vsmMap(v,c);
+ return `<div class="card" style="border-color:var(--pri)"><div class="row"><b>✋ Anordnen</b><button class="btn sm pri" onclick="V.arr=false;render()">Fertig</button></div>
+ <p class="mut sm" style="margin:4px 0 8px">Prozesse nach links/rechts ziehen, Lieferant, Kunde, Planung und Kennzahlen frei verschieben.</p>
+ <label class="f"><span>Abstand zwischen Prozessen: <b id="gapv">${L.G}</b></span><input type="range" min="40" max="220" step="2" value="${L.G}" oninput="arrGap(this.value)"></label>
+ <button class="btn sm" style="margin-top:8px" onclick="arrReset()">↺ Anordnung zurücksetzen</button></div>
+ <div class="row gap" style="margin:4px 0 8px;flex-wrap:nowrap"><span class="sm mut">Zoom</span><button class="btn sm" onclick="arrZoom(-1)">－</button><b class="sm" id="azv" style="min-width:44px;text-align:center">${Math.round((V.az||1.6)*100)} %</b><button class="btn sm" onclick="arrZoom(1)">＋</button><span class="mut sm" style="margin-left:auto">Freie Fläche = wischen</span></div>
+ <div class="card" style="padding:6px;overflow:auto;-webkit-overflow-scrolling:touch" id="vmap" ontouchstart="if(event.target.closest('[data-drag]'))event.preventDefault()">${arrSvg(v,c)}</div>`}
+function arrSvg(v,c){return vsmSvgStr(v,c,true).replace('<svg ',`<svg style="width:${Math.round((V.az||1.6)*100)}%" `)}
+function arrZoom(d){const Z=[1,1.3,1.6,2,2.5,3,4];let i=Z.indexOf(V.az||1.6);if(i<0)i=2;V.az=Z[Math.max(0,Math.min(Z.length-1,i+d))];const e=$('#azv');if(e)e.textContent=Math.round(V.az*100)+' %';arrRedraw()}
+function arrV(){return P().vsm[V.vv]}
+function arrRedraw(){const v=arrV(),h=$('#vmap');if(h)h.innerHTML=arrSvg(v,vcalc(v))}
+function arrGap(g){const v=arrV();v.layout=v.layout||{};v.layout.gap=+g;const e=$('#gapv');if(e)e.textContent=g;arrRedraw();save()}
+function arrReset(){if(!confirm('Anordnung auf Standard zurücksetzen?'))return;delete arrV().layout;save();render()}
+function arrDown(e){const t=e.target.closest('[data-drag]');if(!t)return;e.preventDefault();const svg=e.currentTarget,v=arrV();v.layout=v.layout||{};v.layout.ex=v.layout.ex||{};v.layout.pos=v.layout.pos||{};
+ const key=t.getAttribute('data-drag'),k=svg.viewBox.baseVal.width/svg.getBoundingClientRect().width,isStep=key.startsWith('step:'),id=isStep?key.slice(5):key;
+ const o=isStep?(v.layout.ex[id]||0):{...(v.layout.pos[id]||{dx:0,dy:0})},sx=e.clientX,sy=e.clientY,G=vsmLay(v).G;let raf=0;
+ const mv=ev=>{const dx=(ev.clientX-sx)*k,dy=(ev.clientY-sy)*k;if(isStep)v.layout.ex[id]=Math.round(Math.max(40-G,o+dx));else v.layout.pos[id]={dx:Math.round(o.dx+dx),dy:Math.round(Math.max(id==='sum'?-60:-14,Math.min(id==='sum'?120:100,o.dy+dy)))};if(!raf)raf=requestAnimationFrame(()=>{raf=0;arrRedraw()})};
+ const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);window.removeEventListener('pointercancel',up);save();arrRedraw()};
+ window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up)}
+
 function taktChart(c){
  const st=c.steps.map((s,i)=>({...s,i})).filter(s=>isFinite(s.eff));if(!st.length)return '<div class="empty sm">Zykluszeiten eintragen für das Taktabgleich-Diagramm.</div>';
  const W=360,H=215,L=30,B=182,T=22,mx=Math.max(isFinite(c.takt)?c.takt:0,...st.map(s=>s.eff))*1.15||1,bw=(W-L-10)/st.length,y=v=>B-(v/mx)*(B-T);
@@ -988,7 +1015,7 @@ function plotModal(){const p=P();V.pz=V.pz||V.vv;V.pf=V.pf||'A3';const ok=k=>p.v
  <h3>Zustand</h3>${seg('pz',[['ist','Ist'],['soll','Soll'],['beide','Ist + Soll']])}<h3>Format</h3>${seg('pf',[['A3','A3 quer'],['A4','A4 quer']])}
  ${(V.pz==='beide'?['ist','soll']:[V.pz]).some(ok)?'':'<p class="over sm">Für diesen Zustand gibt es noch keine Prozessschritte.</p>'}
  <button class="btn pri wide" onclick="vsmPdf()">📄 PDF erstellen</button><button class="btn wide" onclick="vsmSvg()">SVG-Datei (Vektor) herunterladen</button>${navigator.standalone?'':'<button class="btn wide" onclick="vsmPrint()">Über Browser drucken</button>'}
- <p class="mut sm" style="margin-top:10px">Das PDF kannst du über Teilen → „In Dateien sichern“ ablegen, per Mail schicken oder drucken. Für den Plotter ideal: die SVG-Datei – sie ist reine Vektorgrafik und bleibt in jeder Größe scharf.</p>`)}
+ <p class="mut sm" style="margin-top:10px">PDF und SVG sind reine Vektorgrafik und bleiben auch auf A1 oder A0 gestochen scharf. Das PDF über Teilen → „In Dateien sichern“ ablegen, per Mail schicken oder direkt an den Plotter geben. Tipp: Mit „✋ Anordnen“ in der Karte vorher Abstände und Positionen anpassen.</p>`)}
 function plotStates(){const p=P();return(V.pz==='beide'?['ist','soll']:[V.pz]).filter(k=>p.vsm[k].steps.length)}
 function vsmPrint(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf];
  let host=$('#printhost');if(!host){host=document.createElement('div');host.id='printhost';document.body.appendChild(host)}host.className='xl';
@@ -1009,7 +1036,79 @@ function pdfFromJpegs(pages,pw,ph){
  const total=3+n*3,xo=len;let xr=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)xr+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
  add(xr+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xo}\n%%EOF`);
  const out=new Uint8Array(len);let o=0;parts.forEach(b=>{out.set(b,o);o+=b.length});return out}
+const HW=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,350,556,350,222,556,333,1000,556,556,333,1000,667,333,1000,350,611,350,350,222,222,333,333,350,556,1000,333,1000,500,333,944,350,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,333,333,333,556,537,278,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500],HWB=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,350,556,350,278,556,500,1000,556,556,333,1000,667,333,1000,350,611,350,350,278,278,500,500,350,556,1000,333,1000,556,333,944,350,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,333,333,333,611,556,278,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556];
+const WA={8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
+/* ===== Vektor-PDF aus SVG (ohne Fremdbibliothek) ===== */
+const PDFMAP={'→':'->','⇢':'>','↔':'<->','⟲':'','≥':'>=','≤':'<=','✓':'','★':'*','☆':'*'};
+function pdfStr(t){let o='';for(const ch of String(t)){const c=ch.codePointAt(0);let b;if(c<128)b=c;else if(c>=160&&c<=255)b=c;else if(WA[c])b=WA[c];else if(PDFMAP[ch]!=null){o+=pdfStr(PDFMAP[ch]);continue}else continue;
+ const s=String.fromCharCode(b);o+=s==='('||s===')'||s==='\\'?'\\'+s:b>126||b<32?'\\'+b.toString(8).padStart(3,'0'):s}return o}
+function pdfW(t,sz,bold){const w=bold?HWB:HW;let n=0;for(const ch of String(t)){const c=ch.codePointAt(0);let b=c<128||(c>=160&&c<=255)?c:WA[c];if(b==null){if(PDFMAP[ch]!=null){n+=pdfW(PDFMAP[ch],1000,bold);}continue}n+=w[b]||556}return n*sz/1000}
+const fN=x=>(Math.round(x*100)/100).toString();
+function pdfCol(c){const m=String(c).match(/rgba?\(([^)]+)\)/);if(!m)return null;const p=m[1].split(/[ ,/]+/).filter(Boolean).map(Number);const a=p.length>3?p[3]:1;if(a===0)return null;return p.slice(0,3).map(v=>fN((v*a+255*(1-a))/255)).join(' ')}
+function arcBez(x1,y1,rx,ry,phi,fa,fs,x2,y2){const out=[];if(rx===0||ry===0)return[[x1,y1,x2,y2,x2,y2]];const r=phi*Math.PI/180,cp=Math.cos(r),sp=Math.sin(r);
+ const dx=(x1-x2)/2,dy=(y1-y2)/2,x1p=cp*dx+sp*dy,y1p=-sp*dx+cp*dy;rx=Math.abs(rx);ry=Math.abs(ry);const lam=x1p*x1p/(rx*rx)+y1p*y1p/(ry*ry);if(lam>1){rx*=Math.sqrt(lam);ry*=Math.sqrt(lam)}
+ let sg=(rx*rx*ry*ry-rx*rx*y1p*y1p-ry*ry*x1p*x1p)/(rx*rx*y1p*y1p+ry*ry*x1p*x1p);sg=Math.sqrt(Math.max(0,sg))*(fa===fs?-1:1);
+ const cxp=sg*rx*y1p/ry,cyp=-sg*ry*x1p/rx,cx=cp*cxp-sp*cyp+(x1+x2)/2,cy=sp*cxp+cp*cyp+(y1+y2)/2,ang=(ux,uy,vx,vy)=>{const a=Math.atan2(ux*vy-uy*vx,ux*vx+uy*vy);return a};
+ let t1=ang(1,0,(x1p-cxp)/rx,(y1p-cyp)/ry),dt=ang((x1p-cxp)/rx,(y1p-cyp)/ry,(-x1p-cxp)/rx,(-y1p-cyp)/ry);if(!fs&&dt>0)dt-=2*Math.PI;if(fs&&dt<0)dt+=2*Math.PI;
+ const seg=Math.ceil(Math.abs(dt)/(Math.PI/2)),d=dt/seg,k=4/3*Math.tan(d/4);const pt=t=>[cx+rx*Math.cos(t)*cp-ry*Math.sin(t)*sp,cy+rx*Math.cos(t)*sp+ry*Math.sin(t)*cp],der=t=>[-rx*Math.sin(t)*cp-ry*Math.cos(t)*sp,-rx*Math.sin(t)*sp+ry*Math.cos(t)*cp];
+ for(let i=0;i<seg;i++){const a=t1+i*d,b=a+d,p0=pt(a),p3=pt(b),d0=der(a),d3=der(b);out.push([p0[0]+k*d0[0],p0[1]+k*d0[1],p3[0]-k*d3[0],p3[1]-k*d3[1],p3[0],p3[1]])}return out}
+function pathOps(dstr){const tk=String(dstr).match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g)||[];let i=0,cmd='',x=0,y=0,sx=0,sy=0,ops='',px=0,py=0,lx=0,ly=0;const num=()=>parseFloat(tk[i++]);
+ const mv=(nx,ny)=>{ops+=`${fN(nx)} ${fN(ny)} m `;x=sx=nx;y=sy=ny;px=x;py=y},ln=(nx,ny)=>{ops+=`${fN(nx)} ${fN(ny)} l `;px=x;py=y;x=nx;y=ny};
+ while(i<tk.length){if(/[a-zA-Z]/.test(tk[i]))cmd=tk[i++];const rel=cmd===cmd.toLowerCase(),C=cmd.toUpperCase();
+  if(C==='Z'){ops+='h ';px=x;py=y;x=sx;y=sy;continue}
+  if(C==='M'){let a=num(),b=num();if(rel){a+=x;b+=y}mv(a,b);cmd=rel?'l':'L';continue}
+  if(C==='L'){let a=num(),b=num();if(rel){a+=x;b+=y}ln(a,b);continue}
+  if(C==='H'){let a=num();if(rel)a+=x;ln(a,y);continue}
+  if(C==='V'){let b=num();if(rel)b+=y;ln(x,b);continue}
+  if(C==='C'){let a=[num(),num(),num(),num(),num(),num()];if(rel)a=a.map((v,j)=>v+(j%2?y:x));ops+=a.map(fN).join(' ')+' c ';px=a[2];py=a[3];x=a[4];y=a[5];continue}
+  if(C==='A'){const rx=num(),ry=num(),ph=num(),fa=num(),fs=num();let a=num(),b=num();if(rel){a+=x;b+=y}arcBez(x,y,rx,ry,ph,fa,fs,a,b).forEach(q=>{ops+=q.map(fN).join(' ')+' c ';px=q[2];py=q[3]});x=a;y=b;continue}
+  i++}
+ return{ops,end:[x,y],prev:[px,py]}}
+function shapeOf(el){const g=n=>parseFloat(el.getAttribute(n))||0,t=el.tagName.toLowerCase();
+ if(t==='rect'){const x=g('x'),y=g('y'),w=g('width'),h=g('height');let r=Math.min(g('rx')||g('ry'),w/2,h/2);if(!r)return{ops:`${fN(x)} ${fN(y)} ${fN(w)} ${fN(h)} re `};const k=.5523*r;
+  return{ops:`${fN(x+r)} ${fN(y)} m ${fN(x+w-r)} ${fN(y)} l ${fN(x+w-r+k)} ${fN(y)} ${fN(x+w)} ${fN(y+r-k)} ${fN(x+w)} ${fN(y+r)} c ${fN(x+w)} ${fN(y+h-r)} l ${fN(x+w)} ${fN(y+h-r+k)} ${fN(x+w-r+k)} ${fN(y+h)} ${fN(x+w-r)} ${fN(y+h)} c ${fN(x+r)} ${fN(y+h)} l ${fN(x+r-k)} ${fN(y+h)} ${fN(x)} ${fN(y+h-r+k)} ${fN(x)} ${fN(y+h-r)} c ${fN(x)} ${fN(y+r)} l ${fN(x)} ${fN(y+r-k)} ${fN(x+r-k)} ${fN(y)} ${fN(x+r)} ${fN(y)} c h `}}
+ if(t==='line')return{ops:`${fN(g('x1'))} ${fN(g('y1'))} m ${fN(g('x2'))} ${fN(g('y2'))} l `,end:[g('x2'),g('y2')],prev:[g('x1'),g('y1')]};
+ if(t==='polyline'||t==='polygon'){const p=(el.getAttribute('points')||'').trim().split(/[ ,]+/).map(Number),pts=[];for(let j=0;j+1<p.length;j+=2)pts.push([p[j],p[j+1]]);if(!pts.length)return null;
+  return{ops:pts.map((q,j)=>`${fN(q[0])} ${fN(q[1])} ${j?'l':'m'} `).join('')+(t==='polygon'?'h ':''),end:pts[pts.length-1],prev:pts[pts.length-2]||pts[0]}}
+ if(t==='circle'||t==='ellipse'){const cx=g('cx'),cy=g('cy'),rx=t==='circle'?g('r'):g('rx'),ry=t==='circle'?g('r'):g('ry'),kx=.5523*rx,ky=.5523*ry;
+  return{ops:`${fN(cx+rx)} ${fN(cy)} m ${fN(cx+rx)} ${fN(cy+ky)} ${fN(cx+kx)} ${fN(cy+ry)} ${fN(cx)} ${fN(cy+ry)} c ${fN(cx-kx)} ${fN(cy+ry)} ${fN(cx-rx)} ${fN(cy+ky)} ${fN(cx-rx)} ${fN(cy)} c ${fN(cx-rx)} ${fN(cy-ky)} ${fN(cx-kx)} ${fN(cy-ry)} ${fN(cx)} ${fN(cy-ry)} c ${fN(cx+kx)} ${fN(cy-ry)} ${fN(cx+rx)} ${fN(cy-ky)} ${fN(cx+rx)} ${fN(cy)} c h `}}
+ if(t==='path')return pathOps(el.getAttribute('d'));return null}
+function svgOps(el){let o='';const t=el.tagName.toLowerCase();if(['defs','marker','title','style','desc','clippath'].includes(t))return '';
+ const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden')return '';
+ if(t==='svg'||t==='g'){let m='';if(t==='svg'&&el.parentNode&&el.parentNode.closest&&el.parentNode.closest('svg')){const vb=el.viewBox.baseVal,x=+el.getAttribute('x')||0,y=+el.getAttribute('y')||0,w=+el.getAttribute('width'),h=+el.getAttribute('height');
+   if(vb&&vb.width){const s=Math.min(w/vb.width,h/vb.height),tx=x+(w-vb.width*s)/2-vb.x*s,ty=y+(h-vb.height*s)/2-vb.y*s;m=`${fN(s)} 0 0 ${fN(s)} ${fN(tx)} ${fN(ty)} cm `}}
+  const tr=el.getAttribute('transform');if(tr){const re=/(translate|scale)\(([^)]*)\)/g;let q;while((q=re.exec(tr))){const a=q[2].split(/[ ,]+/).map(Number);m+=q[1]==='translate'?`1 0 0 1 ${fN(a[0])} ${fN(a[1]||0)} cm `:`${fN(a[0])} 0 0 ${fN(a[1]??a[0])} 0 0 cm `}}
+  for(const ch of el.children)o+=svgOps(ch);return m?`q ${m}${o}Q\n`:o}
+ const fill=cs.fill==='none'?null:pdfCol(cs.fill),stroke=cs.stroke==='none'?null:pdfCol(cs.stroke),sw=parseFloat(cs.strokeWidth)||1,op=parseFloat(cs.opacity);
+ if(op===0)return '';
+ if(t==='text'){const txt=el.textContent;if(!txt.trim()||!fill)return '';const sz=parseFloat(cs.fontSize)||10,bold=(parseInt(cs.fontWeight)||400)>=600||cs.fontWeight==='bold',an=el.getAttribute('text-anchor')||cs.textAnchor||'start',w=pdfW(txt,sz,bold);
+  let x=parseFloat(el.getAttribute('x'))||0;const y=parseFloat(el.getAttribute('y'))||0;if(an==='middle')x-=w/2;else if(an==='end')x-=w;
+  return `BT ${fill} rg /${bold?'F2':'F1'} ${fN(sz)} Tf 1 0 0 -1 ${fN(x)} ${fN(y)} Tm (${pdfStr(txt)}) Tj ET\n`}
+ const sh=shapeOf(el);if(!sh||(!fill&&!stroke))return '';
+ o+=`q ${sw?fN(sw)+' w ':''}`;if(fill)o+=fill+' rg ';if(stroke)o+=stroke+' RG ';
+ o+={round:'1',bevel:'2'}[cs.strokeLinejoin]?{round:'1',bevel:'2'}[cs.strokeLinejoin]+' j ':'0 j ';o+={round:'1',square:'2'}[cs.strokeLinecap]?{round:'1',square:'2'}[cs.strokeLinecap]+' J ':'0 J ';
+ const da=cs.strokeDasharray;if(stroke&&da&&da!=='none')o+=`[${da.split(/[ ,]+/).map(parseFloat).filter(isFinite).map(fN).join(' ')}] 0 d `;
+ o+=sh.ops+(fill&&stroke?(cs.fillRule==='evenodd'?'B*':'B'):fill?(cs.fillRule==='evenodd'?'f*':'f'):'S')+' Q\n';
+ const mk=el.getAttribute('marker-end');if(mk&&sh.end&&stroke){const col=pdfCol(getComputedStyle(el.closest('svg')).color)||stroke,[ex,ey]=sh.end,[qx,qy]=sh.prev,a=Math.atan2(ey-qy,ex-qx),k=sw*.7,ca=Math.cos(a)*k,sa=Math.sin(a)*k,P=(u,v)=>{const X=u-9,Y=v-5;return fN(ex+X*ca-Y*sa)+' '+fN(ey+X*sa+Y*ca)};
+  o+=`q ${col} rg ${P(0,0)} m ${P(10,5)} l ${P(0,10)} l h f Q\n`}
+ return o}
+function pdfVector(pages,pw,ph){
+ const enc=new TextEncoder(),parts=[],offs=[];let len=0;const add=x=>{const b=typeof x==='string'?enc.encode(x):x;parts.push(b);len+=b.length};
+ const obj=(n,body)=>{offs[n]=len;add(`${n} 0 obj\n${body}\nendobj\n`)};add('%PDF-1.4\n');const n=pages.length;
+ obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,`<< /Type /Pages /Kids [${pages.map((_,i)=>`${5+i*2} 0 R`).join(' ')}] /Count ${n} >>`);
+ obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+ pages.forEach((cs,i)=>{const po=5+i*2;obj(po,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${fN(pw)} ${fN(ph)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${po+1} 0 R >>`);obj(po+1,`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`)});
+ const total=5+n*2,xo=len;let xr=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)xr+=String(offs[i]).padStart(10,'0')+' 00000 n \n';
+ add(xr+`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xo}\n%%EOF`);const out=new Uint8Array(len);let o=0;parts.forEach(b=>{out.set(b,o);o+=b.length});return out}
+function sheetOps(html,pw,ph){const host=document.createElement('div');host.className='xl';host.style.cssText='position:fixed;left:-99999px;top:0';host.innerHTML=html;document.body.appendChild(host);
+ try{const svg=host.querySelector('svg'),vb=svg.viewBox.baseVal,m=22.68,k=Math.min((pw-2*m)/vb.width,(ph-2*m)/vb.height),x0=(pw-vb.width*k)/2,y0=(ph+vb.height*k)/2;
+  return `q ${fN(k)} 0 0 ${fN(-k)} ${fN(x0)} ${fN(y0)} cm\n`+svgOps(svg)+'Q\n'}finally{host.remove()}}
+
 async function vsmPdf(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf],pt=72/25.4,pw=(f.w+16)*pt,ph=(f.h+16)*pt;
+ try{const pages=ks.map(k=>sheetOps(vsmSheet(p,k),pw,ph)),bytes=pdfVector(pages,pw,ph),nm=`Wertstrom_${ks.length>1?'Ist-Soll':ks[0]==='ist'?'Ist':'Soll'}_${p.name.replace(/[^\wäöüÄÖÜß-]+/g,'_')}_${today()}.pdf`;
+  offerFile(new File([bytes],nm,{type:'application/pdf'}),'📄 PDF fertig',`${f.n} quer · ${ks.length} Seite${ks.length>1?'n':''} · Vektorgrafik, in jeder Größe scharf`)}
+ catch(e){console.error(e);if(confirm('Vektor-PDF fehlgeschlagen ('+e.message+'). Stattdessen als Bild-PDF erstellen?'))vsmPdfRaster()}}
+async function vsmPdfRaster(){const p=P(),ks=plotStates();if(!ks.length){toast('Keine Prozessschritte vorhanden');return}const f=PAGE[V.pf],pt=72/25.4,pw=(f.w+16)*pt,ph=(f.h+16)*pt;
  toast('PDF wird erstellt …');
  try{const pages=[];for(const k of ks){const{xml,W,H}=inlineSvg(vsmSheet(p,k)),sc=Math.min(2.8,Math.sqrt(14e6/(W*H)));
   const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('Grafik konnte nicht gezeichnet werden'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml)});
