@@ -391,7 +391,7 @@ function projectV(p){
  <h2>Heute zu tun</h2><div class="card">${todo.slice(0,6).map(t=>`<div class="todo${t.late?' late':''}" onclick="${t.on}"><span class="ti">${t.ic}</span><div class="tt"><b>${esc(t.b)}</b><span class="mut sm${t.late?' over':''}">${esc(t.s)}</span></div><span class="mut">›</span></div>`).join('')||'<div class="mut sm" style="padding:6px 2px">✓ Nichts Dringendes – alle Termine im grünen Bereich.</div>'}${todo.length>6?`<div class="mut sm" style="padding-top:6px">+ ${todo.length-6} weitere</div>`:''}</div>
  ${kataCard(p)}
  <h2>Werkzeuge</h2>${GROUPS.map(([g,ids])=>`<div class="mut sm" style="font-weight:700;margin:12px 2px 6px">${g}</div><div class="tgrp">${ids.map(id=>{const t=TOOLS[id];return `<div class="tl2" onclick="openT('${id}')"><span class="ic">${t.icon}</span><div style="min-width:0"><b>${SHORT[id]||t.name}</b><small>${STAT[id](p)}</small></div>${ALERT[id]&&ALERT[id](p)?'<em></em>':''}</div>`}).join('')}</div>`).join('')}
- <h2>Kennzahlen</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',fmt(ci.takt,1),fmt(cs.takt,1),'s')}</div>
+ <h2>Kennzahlen</h2><div class="kpis">${kp('Durchlaufzeit',fmt(ci.invDays,1),fmt(cs.invDays,1),'AT')}${kp('Flussgrad',fmt(ci.flow,2),fmt(cs.flow,2),'%')}${kp('Bestand',fmt(ci.invPcs,0),fmt(cs.invPcs,0),'Stk')}${kp('Kundentakt',tv(ci.takt,ci),tv(cs.takt,ci),ci.u)}</div>
  <div class="card" style="margin-top:8px"><div class="minis">${mini('Ist-Aufnahme',k.compl+' %',k.compl)}${mini('Soll-Zustand',sollC+' %',sollC)}${mini('Maßnahmen',k.done+'/'+k.total,pct(k.done,k.total))}</div></div>
  <h2>Export</h2><div class="row gap" style="flex-wrap:nowrap"><button class="btn" style="flex:1;white-space:nowrap" onclick="exportXlsx()">📊 Excel</button><button class="btn" style="flex:1;white-space:nowrap" onclick="V.vv='ist';plotModal()">🖨️ Plotten</button></div>`;
 }
@@ -422,10 +422,13 @@ function actV(p){
 }
 
 /* ===== Wertstrom ===== */
+const TF={s:1,min:60,h:3600},tdg=u=>u==='s'?1:2;
+function tv(x,c,d){return isFinite(x)?fmt(x/c.f,d==null?tdg(c.u):d):'–'}
+function setTU(kind,u){const v=P().vsm[V.vv],key=kind+'Unit',old=v[key]||(kind==='ct'?'s':'min');if(old===u)return;const f=TF[old]/TF[u];v.steps.forEach(st=>{if(has(st[kind]))st[kind]=String(+(num(st[kind])*f).toFixed(4)).replace('.',',')});v[key]=u;save();render();toast(`${kind==='ct'?'Zykluszeit':'Rüstzeit'} jetzt in ${u} – Werte umgerechnet`)}
 function vcalc(v){
  const c=v.customer,d=num(c.demand),sm=num(c.shiftMin),sh=num(c.shifts),br=num(c.breakMin)||0;
  const avail=sh*(sm-br)*60,takt=avail/d;
- const steps=v.steps.map(s=>{const ct=num(s.ct),par=num(s.par)||1,av=(num(s.avail)||100)/100,eff=ct/par,days=num(s.inv)/d;return{...s,ctN:ct,eff,days,util:eff*d/(avail*av)*100,over:isFinite(takt)&&eff>takt}});
+ const steps=v.steps.map(s=>{const ct=num(s.ct)*TF[v.ctUnit||'s'],par=num(s.par)||1,av=(num(s.avail)||100)/100,eff=ct/par,days=num(s.inv)/d;return{...s,ctN:ct,eff,days,util:eff*d/(avail*av)*100,over:isFinite(takt)&&eff>takt}});
  const fgDays=num(v.fg)/d;
  const invDays=steps.reduce((a,s)=>a+(isFinite(s.days)?s.days:0),0)+(isFinite(fgDays)?fgDays:0);
  const bz=steps.reduce((a,s)=>a+(isFinite(s.ctN)?s.ctN:0),0);
@@ -433,7 +436,7 @@ function vcalc(v){
  const bottleneck=steps.reduce((m,s)=>isFinite(s.eff)&&(!m||s.eff>m.eff)?s:m,null);
  const ops=steps.reduce((a,s)=>a+(num(s.ops)||0),0);
  const invPcs=steps.reduce((a,s)=>a+(num(s.inv)||0),0)+(num(v.fg)||0);
- return{d,avail,takt,steps,fgDays,invDays:steps.length||has(v.fg)?invDays:NaN,bz,flow,bottleneck,ops,opsTheo:bz/takt,invPcs};
+ return{u:v.ctUnit||'s',f:TF[v.ctUnit||'s'],d,avail,takt,steps,fgDays,invDays:steps.length||has(v.fg)?invDays:NaN,bz,flow,bottleneck,ops,opsTheo:bz/takt,invPcs};
 }
 function vchecks(v){
  const c=v.customer,st=v.steps,all=f=>st.length>0&&st.every(f),t=x=>!!String(x||'').trim();
@@ -445,7 +448,7 @@ function vchecks(v){
  ['Lieferfrequenz zum Kunden',t(c.delivery),'z. B. 1× täglich per LKW'],
  ['Lieferant & Anlieferfrequenz',t(v.supplier.name)&&t(v.supplier.delivery),'Hauptlieferant bzw. Wareneingang'],
  ['Mindestens 2 Prozessschritte',st.length>=2,'Ein Prozesskasten pro Schritt mit durchgehendem Fluss'],
- ['Zykluszeit je Schritt',all(s=>has(s.ct)),'Selbst gemessen, in Sekunden pro Stück'],
+ ['Zykluszeit je Schritt',all(s=>has(s.ct)),'Selbst gemessen, pro Stück'],
  ['Rüstzeit je Schritt',all(s=>has(s.co)),'0 eintragen, wenn nicht gerüstet wird'],
  ['Verfügbarkeit je Schritt',all(s=>has(s.avail)),'Anteil der Zeit, in der der Schritt produzieren kann'],
  ['Mitarbeiter je Schritt',all(s=>has(s.ops)),''],
@@ -458,7 +461,7 @@ function vchecks(v){
  ['Steuerung / Schrittmacher',t(v.info.control),'Wo wird der Fluss angestoßen? (z. B. Endmontage)']];
 }
 function vcomp(v){const c=vchecks(v);return Math.round(c.filter(x=>x[1]).length/c.length*100)}
-function liveBar(v){const c=vcalc(v);return `<div class="live"><div><span>Takt</span><b>${fmt(c.takt,1)} s</b></div><div><span>DLZ</span><b>${fmt(c.invDays,1)} AT</b></div><div><span>Flussgrad</span><b>${fmt(c.flow,2)} %</b></div><div><span>Vollständig</span><b>${vcomp(v)} %</b></div></div>`}
+function liveBar(v){const c=vcalc(v);return `<div class="live"><div><span>Takt</span><b>${tv(c.takt,c)} ${c.u}</b></div><div><span>DLZ</span><b>${fmt(c.invDays,1)} AT</b></div><div><span>Flussgrad</span><b>${fmt(c.flow,2)} %</b></div><div><span>Vollständig</span><b>${vcomp(v)} %</b></div></div>`}
 function vsmV(p){
  const v=p.vsm[V.vv],c=vcalc(v);
  V.live=()=>{const e=$('#live');if(e)e.innerHTML=liveBar(P().vsm[V.vv])};
@@ -472,7 +475,7 @@ function vsmData(v){
  const steps=v.steps.map((s,i)=>{const q=`${pr}.steps.${i}`;return `<div class="card step"><div class="row"><h3>${i+1}. ${esc(s.name||'Prozessschritt')}</h3><span><button class="ib" onclick="mvStep(${i},-1)">↑</button><button class="ib" onclick="mvStep(${i},1)">↓</button><button class="ib" onclick="delStep(${i})">✕</button></span></div>
  <div class="grid2" style="margin-top:8px">${fld('Bezeichnung',q+'.name',s.name,{cls:'full',ph:'z. B. Vormontage'})}
  ${fld('Bestand davor',q+'.inv',s.inv,{num:1,unit:'Stk'})}<label class="f"><span>Steuerung davor</span><select onchange="upd('${q}.flow',this.value)">${opt('push','Push',s.flow)}${opt('fifo','FIFO',s.flow)}${opt('sm','Supermarkt/Kanban',s.flow)}</select></label>
- ${fld('Zykluszeit',q+'.ct',s.ct,{num:1,unit:'s'})}${fld('Rüstzeit',q+'.co',s.co,{num:1,unit:'min'})}
+ ${fld('Zykluszeit',q+'.ct',s.ct,{num:1,unit:v.ctUnit||'s'})}${fld('Rüstzeit',q+'.co',s.co,{num:1,unit:v.coUnit||'min'})}
  ${fld('Verfügbarkeit',q+'.avail',s.avail,{num:1,unit:'%'})}${fld('Mitarbeiter',q+'.ops',s.ops,{num:1})}
  ${fld('Parallele Plätze',q+'.par',s.par,{num:1})}${fld('Losgröße',q+'.lot',s.lot,{num:1,unit:'Stk'})}
  ${fld('Ausschuss/Nacharbeit',q+'.scrap',s.scrap,{num:1,unit:'%'})}</div></div>`}).join('');
@@ -480,7 +483,7 @@ function vsmData(v){
  <h2>Kunde & Kundentakt</h2><div class="card grid2">${fld('Kunde',pr+'.customer.name',c.name,{cls:'full',ph:'z. B. Versand / OEM'})}${fld('Bedarf pro Tag',pr+'.customer.demand',c.demand,{num:1,unit:'Stk'})}${fld('Schichten pro Tag',pr+'.customer.shifts',c.shifts,{num:1})}${fld('Schichtdauer',pr+'.customer.shiftMin',c.shiftMin,{num:1,unit:'min'})}${fld('Pausen je Schicht',pr+'.customer.breakMin',c.breakMin,{num:1,unit:'min'})}${fld('Lieferfrequenz an Kunde',pr+'.customer.delivery',c.delivery,{cls:'full',ph:'z. B. 1× täglich'})}</div>
  <h2>Lieferant</h2><div class="card grid2">${fld('Lieferant',pr+'.supplier.name',v.supplier.name,{ph:'z. B. Wareneingang'})}${fld('Anlieferfrequenz',pr+'.supplier.delivery',v.supplier.delivery,{ph:'z. B. 2× pro Woche'})}</div>
  <h2>Informationsfluss</h2><div class="card grid2">${fld('Produktionsplanung',pr+'.info.planning',v.info.planning,{cls:'full',ph:'z. B. SAP, Wochenplan'})}${fld('Kundenbestellung',pr+'.info.custOrder',v.info.custOrder,{ph:'z. B. EDI wöchentlich'})}${fld('Lieferantenabruf',pr+'.info.suppOrder',v.info.suppOrder,{ph:'z. B. Abruf monatlich'})}${fld('Steuerung / Schrittmacher',pr+'.info.control',v.info.control,{cls:'full',ph:'z. B. Plan an jeden Schritt (Push)'})}</div>
- <h2>Prozessschritte</h2>${steps||'<div class="empty">Noch keine Prozessschritte.</div>'}<button class="btn pri wide" onclick="addStep()">+ Prozessschritt</button>
+ <h2>Prozessschritte</h2><div class="card">${[['ct','Zykluszeit & Takt','s'],['co','Rüstzeit','min']].map(([k,l,d],j)=>`<div class="row" style="flex-wrap:nowrap;${j?'margin-top:8px':''}"><span class="sm" style="min-width:118px"><b>${l}</b></span><div class="seg" style="margin:0;flex:1">${['s','min','h'].map(u=>`<button class="${(v[k+'Unit']||d)===u?'on':''}" onclick="setTU('${k}','${u}')">${{s:'Sekunden',min:'Minuten',h:'Stunden'}[u]}</button>`).join('')}</div></div>`).join('')}<p class="mut sm" style="margin:8px 0 0">Zeiteinheit für die Eingabe und alle Anzeigen. Beim Umschalten werden vorhandene Werte automatisch umgerechnet.</p></div>${steps||'<div class="empty">Noch keine Prozessschritte.</div>'}<button class="btn pri wide" onclick="addStep()">+ Prozessschritt</button>
  <h2>Fertigwarenlager</h2><div class="card">${fld('Bestand Fertigware',pr+'.fg',v.fg,{num:1,unit:'Stk'})}</div>`;
 }
 function addStep(){P().vsm[V.vv].steps.push(newStep());save();render()}
@@ -510,38 +513,38 @@ function vsmMap(v,c){
   if(i>0)s+=`<text x="${tx}" y="${MY-26}" text-anchor="middle" class="flow">${lab}</text>`;
   s+=`<rect x="${x}" y="163" width="${BW}" height="36" rx="3" class="bx${cs.over?' bad':''}"/><text x="${x+BW/2}" y="185" text-anchor="middle" class="b">${esc(trunc(st.name||'Schritt '+(i+1),18))}</text>`;
   s+=`<rect x="${x}" y="199" width="${BW}" height="100" class="db"/>`;
-  const L=[['ZZ',has(st.ct)?fmt(num(st.ct),1)+' s':'–'],['ZZ eff.',isFinite(cs.eff)?fmt(cs.eff,1)+' s':'–'],['RZ',has(st.co)?fmt(num(st.co),0)+' min':'–'],['Verfügb.',has(st.avail)?fmt(num(st.avail),0)+' %':'–'],['MA / Plätze',(has(st.ops)?fmt(num(st.ops),1):'–')+' / '+(st.par||1)],['Los',has(st.lot)?fmt(num(st.lot),0):'–'],['Ausschuss',has(st.scrap)?fmt(num(st.scrap),1)+' %':'–']];
+  const L=[['ZZ',has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'–'],['ZZ eff.',isFinite(cs.eff)?tv(cs.eff,c)+' '+c.u:'–'],['RZ',has(st.co)?fmt(num(st.co),1)+' '+(v.coUnit||'min'):'–'],['Verfügb.',has(st.avail)?fmt(num(st.avail),0)+' %':'–'],['MA / Plätze',(has(st.ops)?fmt(num(st.ops),1):'–')+' / '+(st.par||1)],['Los',has(st.lot)?fmt(num(st.lot),0):'–'],['Ausschuss',has(st.scrap)?fmt(num(st.scrap),1)+' %':'–']];
   L.forEach((r,j)=>{s+=`<text x="${x+6}" y="${214+j*12.5}" class="sm">${r[0]}</text><text x="${x+BW-6}" y="${214+j*12.5}" text-anchor="end">${r[1]}</text>`});
  });
  const lx=px(n-1)+BW,fx=lx+G/2;
  s+=`<path d="M${lx} ${MY}H${fx-17}" class="mat" marker-end="url(#ah)"/>`+tri(fx,MY,v.fg,c.fgDays);
  s+=`<path d="M${fx+16} ${MY}H${W-75}V78" class="mat" marker-end="url(#ah)"/><text x="${W-70}" y="${MY-30}" class="sm">🚚 ${esc(trunc(v.customer.delivery,14))}</text>`;
  const ty=335;let d=`M${px(0)-G} ${ty}`,tl='';
- v.steps.forEach((st,i)=>{const x=px(i),cs=c.steps[i];d+=`H${x}V${ty+26}H${x+BW}V${ty}`;tl+=`<text x="${x-G/2}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(cs.days,1)} AT</text><text x="${x+BW/2}" y="${ty+40}" text-anchor="middle" class="sm">${has(st.ct)?fmt(num(st.ct),1)+' s':'– s'}</text>`});
+ v.steps.forEach((st,i)=>{const x=px(i),cs=c.steps[i];d+=`H${x}V${ty+26}H${x+BW}V${ty}`;tl+=`<text x="${x-G/2}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(cs.days,1)} AT</text><text x="${x+BW/2}" y="${ty+40}" text-anchor="middle" class="sm">${has(st.ct)?fmt(num(st.ct),tdg(c.u))+' '+c.u:'– '+c.u}</text>`});
  d+=`H${lx+G}`;tl+=`<text x="${fx}" y="${ty-6}" text-anchor="middle" class="sm">${fmt(c.fgDays,1)} AT</text>`;
  s+=`<path d="${d}" class="tl"/>${tl}`;
  const sx=lx+G+10;
- s+=`<rect x="${sx}" y="${ty-22}" width="128" height="72" rx="6" class="sum"/><text x="${sx+8}" y="${ty-6}" class="sm">Durchlaufzeit</text><text x="${sx+120}" y="${ty-6}" text-anchor="end" class="b">${fmt(c.invDays,1)} AT</text><text x="${sx+8}" y="${ty+12}" class="sm">Bearbeitungszeit</text><text x="${sx+120}" y="${ty+12}" text-anchor="end" class="b">${fmt(c.bz,0)} s</text><text x="${sx+8}" y="${ty+30}" class="sm">Flussgrad</text><text x="${sx+120}" y="${ty+30}" text-anchor="end" class="b">${fmt(c.flow,2)} %</text>`;
+ s+=`<rect x="${sx}" y="${ty-22}" width="128" height="72" rx="6" class="sum"/><text x="${sx+8}" y="${ty-6}" class="sm">Durchlaufzeit</text><text x="${sx+120}" y="${ty-6}" text-anchor="end" class="b">${fmt(c.invDays,1)} AT</text><text x="${sx+8}" y="${ty+12}" class="sm">Bearbeitungszeit</text><text x="${sx+120}" y="${ty+12}" text-anchor="end" class="b">${tv(c.bz,c,c.u==='s'?0:1)} ${c.u}</text><text x="${sx+8}" y="${ty+30}" class="sm">Flussgrad</text><text x="${sx+120}" y="${ty+30}" text-anchor="end" class="b">${fmt(c.flow,2)} %</text>`;
  return `<div class="card scroll"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" class="vsm">${s}</svg></div><p class="mut sm">Seitlich wischen · Rot umrandet = effektive Zykluszeit über Kundentakt · AT = Arbeitstage Reichweite.</p>`;
 }
 function taktChart(c){
  const st=c.steps.map((s,i)=>({...s,i})).filter(s=>isFinite(s.eff));if(!st.length)return '<div class="empty sm">Zykluszeiten eintragen für das Taktabgleich-Diagramm.</div>';
  const W=360,H=215,L=30,B=182,T=22,mx=Math.max(isFinite(c.takt)?c.takt:0,...st.map(s=>s.eff))*1.15||1,bw=(W-L-10)/st.length,y=v=>B-(v/mx)*(B-T);
- let s='';st.forEach((x,k)=>{const X=L+k*bw+bw*.2,w=bw*.6;s+=`<rect x="${X}" y="${y(x.eff)}" width="${w}" height="${Math.max(0,B-y(x.eff))}" rx="3" class="${x.over?'bbad':'bok'}"/><text x="${X+w/2}" y="${y(x.eff)-4}" text-anchor="middle" class="sm">${fmt(x.eff,0)}</text><text x="${X+w/2}" y="${B+14}" text-anchor="middle" class="sm">${esc(trunc(x.name||'#'+(x.i+1),9))}</text>`});
+ let s='';st.forEach((x,k)=>{const X=L+k*bw+bw*.2,w=bw*.6;s+=`<rect x="${X}" y="${y(x.eff)}" width="${w}" height="${Math.max(0,B-y(x.eff))}" rx="3" class="${x.over?'bbad':'bok'}"/><text x="${X+w/2}" y="${y(x.eff)-4}" text-anchor="middle" class="sm">${tv(x.eff,c,c.u==='s'?0:1)}</text><text x="${X+w/2}" y="${B+14}" text-anchor="middle" class="sm">${esc(trunc(x.name||'#'+(x.i+1),9))}</text>`});
  s+=`<line x1="${L}" x2="${L}" y1="${T-8}" y2="${B}" class="ax"/><line x1="${L}" x2="${W-6}" y1="${B}" y2="${B}" class="ax"/>`;
- if(isFinite(c.takt))s+=`<line x1="${L}" x2="${W-6}" y1="${y(c.takt)}" y2="${y(c.takt)}" class="takt"/><text x="${W-6}" y="${y(c.takt)-5}" text-anchor="end" class="tk">Takt ${fmt(c.takt,1)} s</text>`;
+ if(isFinite(c.takt))s+=`<line x1="${L}" x2="${W-6}" y1="${y(c.takt)}" y2="${y(c.takt)}" class="takt"/><text x="${W-6}" y="${y(c.takt)-5}" text-anchor="end" class="tk">Takt ${tv(c.takt,c)} ${c.u}</text>`;
  return `<svg viewBox="0 0 ${W} ${H}" class="chart" style="width:100%">${s}</svg>`;
 }
 function vsmKpi(p){
  const v=p.vsm[V.vv],c=vcalc(v),ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=(l,val,u,h)=>`<div class="kpi"><span>${l}</span><b>${val}<small> ${u}</small></b>${h?`<i>${h}</i>`:''}</div>`;
- const res=`<h2>Ergebniskennzahlen · ${V.vv==='ist'?'Ist':'Soll'}</h2><div class="kpis">${k('Kundentakt',fmt(c.takt,1),'s','verfügbare Zeit ÷ Bedarf')}${k('Durchlaufzeit',fmt(c.invDays,1),'AT','Summe der Reichweiten')}${k('Bearbeitungszeit',fmt(c.bz,0),'s','Summe der Zykluszeiten')}${k('Flussgrad',fmt(c.flow,2),'%','Bearbeitungszeit ÷ DLZ')}${k('Bestand gesamt',fmt(c.invPcs,0),'Stk','')}${k('Mitarbeiter',fmt(c.ops,1),'',`theoretisch nötig: ${fmt(c.opsTheo,1)}`)}${k('Engpass',c.bottleneck?esc(trunc(c.bottleneck.name||'Schritt',14)):'–','',c.bottleneck?fmt(c.bottleneck.eff,1)+' s eff. ZZ':'')}${k('Verfügbare Zeit',fmt(c.avail/60,0),'min/Tag','')}</div>`;
- const tbl=c.steps.length?`<div class="card"><table><tr><th>Schritt</th><th>ZZ eff.</th><th>Auslastung</th><th>Reichweite</th></tr>${c.steps.map((s,i)=>`<tr><td>${esc(trunc(s.name||'Schritt '+(i+1),18))}</td><td class="${s.over?'badc':''}">${fmt(s.eff,1)} s</td><td class="${s.util>100?'badc':''}">${fmt(s.util,0)} %</td><td>${fmt(s.days,1)} AT</td></tr>`).join('')}</table></div>`:'';
- const rows=[['Kundentakt (s)',ci.takt,cs.takt,0,1],['Durchlaufzeit (AT)',ci.invDays,cs.invDays,-1,1],['Bearbeitungszeit (s)',ci.bz,cs.bz,-1,0],['Flussgrad (%)',ci.flow,cs.flow,1,2],['Bestand (Stk)',ci.invPcs,cs.invPcs,-1,0],['Mitarbeiter',ci.ops,cs.ops,-1,1],['Engpass-ZZ (s)',ci.bottleneck?.eff,cs.bottleneck?.eff,-1,1]];
+ const res=`<h2>Ergebniskennzahlen · ${V.vv==='ist'?'Ist':'Soll'}</h2><div class="kpis">${k('Kundentakt',tv(c.takt,c),c.u,'verfügbare Zeit ÷ Bedarf')}${k('Durchlaufzeit',fmt(c.invDays,1),'AT','Summe der Reichweiten')}${k('Bearbeitungszeit',tv(c.bz,c,c.u==='s'?0:1),c.u,'Summe der Zykluszeiten')}${k('Flussgrad',fmt(c.flow,2),'%','Bearbeitungszeit ÷ DLZ')}${k('Bestand gesamt',fmt(c.invPcs,0),'Stk','')}${k('Mitarbeiter',fmt(c.ops,1),'',`theoretisch nötig: ${fmt(c.opsTheo,1)}`)}${k('Engpass',c.bottleneck?esc(trunc(c.bottleneck.name||'Schritt',14)):'–','',c.bottleneck?tv(c.bottleneck.eff,c)+' '+c.u+' eff. ZZ':'')}${k('Verfügbare Zeit',fmt(c.avail/60,0),'min/Tag','')}</div>`;
+ const tbl=c.steps.length?`<div class="card"><table><tr><th>Schritt</th><th>ZZ eff.</th><th>Auslastung</th><th>Reichweite</th></tr>${c.steps.map((s,i)=>`<tr><td>${esc(trunc(s.name||'Schritt '+(i+1),18))}</td><td class="${s.over?'badc':''}">${tv(s.eff,c)} ${c.u}</td><td class="${s.util>100?'badc':''}">${fmt(s.util,0)} %</td><td>${fmt(s.days,1)} AT</td></tr>`).join('')}</table></div>`:'';
+ const rows=[['Kundentakt ('+ci.u+')',ci.takt/ci.f,cs.takt/ci.f,0,tdg(ci.u)],['Durchlaufzeit (AT)',ci.invDays,cs.invDays,-1,1],['Bearbeitungszeit ('+ci.u+')',ci.bz/ci.f,cs.bz/ci.f,-1,tdg(ci.u)],['Flussgrad (%)',ci.flow,cs.flow,1,2],['Bestand (Stk)',ci.invPcs,cs.invPcs,-1,0],['Mitarbeiter',ci.ops,cs.ops,-1,1],['Engpass-ZZ ('+ci.u+')',(ci.bottleneck?.eff)/ci.f,(cs.bottleneck?.eff)/ci.f,-1,tdg(ci.u)]];
  const cmp=`<h2>Vergleich Ist ↔ Soll</h2><div class="card"><table><tr><th>Kennzahl</th><th>Ist</th><th>Soll</th><th>Δ</th></tr>${rows.map(([l,a,b,dir,dg])=>{const dd=isFinite(a)&&isFinite(b)&&a?(b-a)/a*100:NaN,cls=!isFinite(dd)||dir===0||Math.abs(dd)<.05?'':(dd*dir>0?'good':'badc');return `<tr><td>${l}</td><td>${fmt(a,dg)}</td><td>${fmt(b,dg)}</td><td class="${cls}">${isFinite(dd)?(dd>0?'+':'')+fmt(dd,0)+' %':'–'}</td></tr>`}).join('')}</table></div>`;
  const done=p.actions.filter(a=>a.status==='erledigt').length,ic=vcomp(p.vsm.ist),sc=vcomp(p.vsm.soll);
  const dlzRed=isFinite(ci.invDays)&&ci.invDays>0&&isFinite(cs.invDays)?(1-cs.invDays/ci.invDays)*100:NaN;
  const prog=`<h2>Fortschrittskennzahlen</h2><div class="card">${progRow('Ist-Aufnahme vollständig',ic+' %',ic)}${progRow('Soll-Zustand definiert',sc+' %',sc)}${progRow('Maßnahmen umgesetzt',`${done} / ${p.actions.length}`,pct(done,p.actions.length))}${isFinite(dlzRed)?`<p class="sm" style="margin:8px 0 0">Ziel-Reduktion Durchlaufzeit: <b class="${dlzRed>0?'good':'badc'}">${fmt(dlzRed,0)} %</b></p>`:''}</div>`;
- const hints=[];c.steps.forEach((s,i)=>{if(s.over)hints.push(`<b>${esc(s.name||'Schritt '+(i+1))}</b> liegt mit ${fmt(s.eff,1)} s über dem Takt – Arbeitsinhalt verteilen, Verschwendung abbauen oder parallelisieren.`)});
+ const hints=[];c.steps.forEach((s,i)=>{if(s.over)hints.push(`<b>${esc(s.name||'Schritt '+(i+1))}</b> liegt mit ${tv(s.eff,c)} ${c.u} über dem Takt – Arbeitsinhalt verteilen, Verschwendung abbauen oder parallelisieren.`)});
  if(isFinite(c.flow)&&c.flow<5)hints.push('Flussgrad unter 5 %: Das Produkt liegt die meiste Zeit im Bestand. Bestände senken, FIFO-Bahnen oder Supermärkte einführen.');
  c.steps.forEach((s,i)=>{if(isFinite(s.days)&&s.days>1)hints.push(`Bestand vor <b>${esc(s.name||'Schritt '+(i+1))}</b> reicht ${fmt(s.days,1)} Arbeitstage.`)});
  return res+`<h2>Taktabgleich</h2><div class="card">${taktChart(c)}</div>`+tbl+(hints.length?`<h2>Ansatzpunkte</h2><div class="card sm">${hints.map(h=>`<p style="margin:4px 0">• ${h}</p>`).join('')}</div>`:'')+cmp+prog;
@@ -820,15 +823,15 @@ async function exportXlsx(){
  const wb=new ExcelJS.Workbook();wb.creator='Busch LEAN';wb.created=new Date();let ws;
  const ci=vcalc(p.vsm.ist),cs=vcalc(p.vsm.soll),k=projStats(p),sc=vcomp(p.vsm.soll);
  ws=newWs(wb,'Übersicht',[34,14,14,14]);xTitle(ws,p.name,`${p.desc?p.desc+' · ':''}Export vom ${new Date().toLocaleDateString('de-DE')}`);
- xSub(ws,'Ergebniskennzahlen');xTable(ws,['Kennzahl','Ist','Soll','Einheit'],[['Kundentakt',rd(ci.takt),rd(cs.takt),'s'],['Durchlaufzeit',rd(ci.invDays,2),rd(cs.invDays,2),'Arbeitstage'],['Bearbeitungszeit',rd(ci.bz),rd(cs.bz),'s'],['Flussgrad',rd(ci.flow,3),rd(cs.flow,3),'%'],['Bestand gesamt',rd(ci.invPcs,0),rd(cs.invPcs,0),'Stk'],['Mitarbeiter',rd(ci.ops),rd(cs.ops),''],['Engpass (eff. Zykluszeit)',rd(ci.bottleneck?.eff),rd(cs.bottleneck?.eff),'s']]);
+ xSub(ws,'Ergebniskennzahlen');xTable(ws,['Kennzahl','Ist','Soll','Einheit'],[['Kundentakt',rd(ci.takt/ci.f,2),rd(cs.takt/ci.f,2),ci.u],['Durchlaufzeit',rd(ci.invDays,2),rd(cs.invDays,2),'Arbeitstage'],['Bearbeitungszeit',rd(ci.bz/ci.f,2),rd(cs.bz/ci.f,2),ci.u],['Flussgrad',rd(ci.flow,3),rd(cs.flow,3),'%'],['Bestand gesamt',rd(ci.invPcs,0),rd(cs.invPcs,0),'Stk'],['Mitarbeiter',rd(ci.ops),rd(cs.ops),''],['Engpass (eff. Zykluszeit)',rd((ci.bottleneck?.eff)/ci.f,2),rd((cs.bottleneck?.eff)/ci.f,2),ci.u]]);
  xSub(ws,'Fortschritt');await xImg(ws,wb,hbar([['Ist-Aufnahme vollständig',k.compl,'#0f6e56'],['Soll-Zustand definiert',sc,'#2563eb'],['Maßnahmen umgesetzt',pct(k.done,k.total),'#d97706']],'%',0,100),620);
  xTable(ws,['Fortschritt','Wert'],[['Ist-Aufnahme vollständig (%)',k.compl],['Soll-Zustand definiert (%)',sc],['Maßnahmen erledigt',k.done],['Maßnahmen gesamt',k.total]]);
  for(const [key,lab] of [['ist','Ist'],['soll','Soll']]){const v=p.vsm[key];if(!v.steps.length&&!has(v.customer.demand))continue;const c=vcalc(v);
   ws=newWs(wb,'Wertstrom '+lab,[6,28,12,12,10,10,10,12,10,8,9,11,12,12]);xTitle(ws,`Wertstrom – ${lab}-Zustand`,p.name);
   if(v.steps.length){xSub(ws,'Wertstromkarte');await xImg(ws,wb,svgOf(vsmMap(v,c)),1200)}
   if(c.steps.some(s=>isFinite(s.eff))){xSub(ws,'Taktabgleich');await xImg(ws,wb,taktChart(c),620)}
-  xSub(ws,'Prozessschritte');xTable(ws,['Nr','Schritt','Bestand davor (Stk)','Steuerung','ZZ (s)','ZZ eff. (s)','Rüstzeit (min)','Verfügbarkeit (%)','Mitarbeiter','Plätze','Losgröße','Ausschuss (%)','Auslastung (%)','Reichweite (AT)'],c.steps.map((s,i)=>[i+1,s.name,nn(s.inv),{push:'Push',fifo:'FIFO',sm:'Supermarkt'}[s.flow]||'',nn(s.ct),rd(s.eff),nn(s.co),nn(s.avail),nn(s.ops),nn(s.par),nn(s.lot),nn(s.scrap),rd(s.util,0),rd(s.days,2)]));
-  xSub(ws,'Kunde, Lieferant & Informationsfluss');xTable(ws,['','Feld','Wert'],[['Kunde',v.customer.name],['Bedarf pro Tag (Stk)',nn(v.customer.demand)],['Schichten pro Tag',nn(v.customer.shifts)],['Schichtdauer (min)',nn(v.customer.shiftMin)],['Pausen je Schicht (min)',nn(v.customer.breakMin)],['Kundentakt (s)',rd(c.takt)],['Lieferfrequenz an Kunde',v.customer.delivery],['Lieferant',v.supplier.name],['Anlieferfrequenz',v.supplier.delivery],['Produktionsplanung',v.info.planning],['Kundenbestellung',v.info.custOrder],['Lieferantenabruf',v.info.suppOrder],['Steuerung / Schrittmacher',v.info.control],['Fertigwarenbestand (Stk)',nn(v.fg)]].map(r=>['',...r]));
+  xSub(ws,'Prozessschritte');xTable(ws,['Nr','Schritt','Bestand davor (Stk)','Steuerung',`ZZ (${c.u})`,`ZZ eff. (${c.u})`,`Rüstzeit (${v.coUnit||'min'})`,'Verfügbarkeit (%)','Mitarbeiter','Plätze','Losgröße','Ausschuss (%)','Auslastung (%)','Reichweite (AT)'],c.steps.map((s,i)=>[i+1,s.name,nn(s.inv),{push:'Push',fifo:'FIFO',sm:'Supermarkt'}[s.flow]||'',nn(s.ct),rd(s.eff/c.f,2),nn(s.co),nn(s.avail),nn(s.ops),nn(s.par),nn(s.lot),nn(s.scrap),rd(s.util,0),rd(s.days,2)]));
+  xSub(ws,'Kunde, Lieferant & Informationsfluss');xTable(ws,['','Feld','Wert'],[['Kunde',v.customer.name],['Bedarf pro Tag (Stk)',nn(v.customer.demand)],['Schichten pro Tag',nn(v.customer.shifts)],['Schichtdauer (min)',nn(v.customer.shiftMin)],['Pausen je Schicht (min)',nn(v.customer.breakMin)],['Kundentakt ('+c.u+')',rd(c.takt/c.f,2)],['Lieferfrequenz an Kunde',v.customer.delivery],['Lieferant',v.supplier.name],['Anlieferfrequenz',v.supplier.delivery],['Produktionsplanung',v.info.planning],['Kundenbestellung',v.info.custOrder],['Lieferantenabruf',v.info.suppOrder],['Steuerung / Schrittmacher',v.info.control],['Fertigwarenbestand (Stk)',nn(v.fg)]].map(r=>['',...r]));
   xSub(ws,'Checkliste');xTable(ws,['','Punkt','Erfüllt'],vchecks(v).map(x=>['',x[0],x[1]?'✓':'offen']))}
  if(p.muda.obs.length){ws=newWs(wb,'Verschwendung',[22,18,46,12,16,14]);xTitle(ws,'Verschwendungsaufnahme',p.name);
   const tot=MUDA.map(m=>[m[1],p.muda.obs.filter(o=>o.type===m[0]).reduce((a,o)=>a+(num(o.dur)||0)*(num(o.freq)||0)/60,0),m[3]]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
@@ -964,7 +967,7 @@ function vsmSheet(p,k){
  s+=`<text x="${W-30}" y="62" text-anchor="end" style="${ff};font-size:20px;font-weight:700;fill:#0f6e56">B-LEAN · be lean.</text><text x="${W-30}" y="96" text-anchor="end" style="${ff};font-size:18px;fill:#6b7280">${esc(v.customer.name?'Kunde: '+v.customer.name+' · ':'')}${has(v.customer.demand)?fmt(c.d,0)+' Stk/Tag':''}</text>`;
  s+=`<line x1="12" y1="110" x2="${W-12}" y2="110" style="stroke:#17202a;stroke-width:1.5"/>`+map;
  const y0=H-226;s+=`<line x1="12" y1="${y0-12}" x2="${W-12}" y2="${y0-12}" style="stroke:#17202a;stroke-width:1.5"/>`;
- const K=[['Kundentakt',fmt(c.takt,1),'s'],['Durchlaufzeit',fmt(c.invDays,1),'AT'],['Bearbeitungszeit',fmt(c.bz,0),'s'],['Flussgrad',fmt(c.flow,2),'%'],['Bestand gesamt',fmt(c.invPcs,0),'Stk'],['Mitarbeiter',fmt(c.ops,1),`(theor. ${fmt(c.opsTheo,1)})`],['Engpass',c.bottleneck?(c.bottleneck.name||'–'):'–',c.bottleneck?fmt(c.bottleneck.eff,0)+' s':''],['Vollständigkeit',vcomp(v),'%']];
+ const K=[['Kundentakt',tv(c.takt,c),c.u],['Durchlaufzeit',fmt(c.invDays,1),'AT'],['Bearbeitungszeit',tv(c.bz,c,c.u==='s'?0:1),c.u],['Flussgrad',fmt(c.flow,2),'%'],['Bestand gesamt',fmt(c.invPcs,0),'Stk'],['Mitarbeiter',fmt(c.ops,1),`(theor. ${fmt(c.opsTheo,1)})`],['Engpass',c.bottleneck?(c.bottleneck.name||'–'):'–',c.bottleneck?tv(c.bottleneck.eff,c,c.u==='s'?0:1)+' '+c.u:''],['Vollständigkeit',vcomp(v),'%']];
  K.forEach((kk,i)=>{const x=30+(i%4)*146,y=y0+(i<4?0:96),isN=/^[\d.,–-]+$/.test(String(kk[1]));s+=`<rect x="${x}" y="${y}" width="138" height="86" rx="6" style="fill:#e3f2ec;stroke:#0f6e56;stroke-width:1.5"/>`+T(x+10,y+24,kk[0],'font-size:14px;fill:#4b5563')+T(x+10,y+58,isN?kk[1]:trunc(kk[1],12),isN?'font-size:28px;font-weight:800':'font-size:19px;font-weight:800')+T(x+10,y+78,kk[2],'font-size:13px;fill:#4b5563')});
  const lx=622;s+=T(lx,y0+20,'Legende','font-size:17px;font-weight:800');
  const L=[[`<polygon points="${lx+12},${y0+36} ${lx},${y0+58} ${lx+24},${y0+58}" style="fill:#f6c453;stroke:#17202a"/>`,'Bestand (Stk / Reichweite)'],[`<line x1="${lx}" y1="${y0+82}" x2="${lx+30}" y2="${y0+82}" style="stroke:#17202a;stroke-width:2.5"/>`,'Materialfluss'],[`<line x1="${lx}" y1="${y0+112}" x2="${lx+30}" y2="${y0+112}" style="stroke:#6b7280;stroke-width:2;stroke-dasharray:6 5"/>`,'Informationsfluss'],[`<rect x="${lx}" y="${y0+130}" width="30" height="20" style="fill:#fff;stroke:#c62828;stroke-width:3"/>`,'Prozess über Kundentakt'],[`<path d="M${lx} ${y0+182}H${lx+10}V${y0+170}H${lx+20}V${y0+182}H${lx+30}" style="fill:none;stroke:#0f6e56;stroke-width:2.5"/>`,'Zeitlinie: oben Liegezeit, unten Bearbeitung']];
@@ -999,10 +1002,10 @@ const AI_Q=[['Produktfamilien','Ich habe mehrere Produkte. Wie bilde ich sinnvol
 function vsmText(p){
  const fl={push:'Push',fifo:'FIFO',sm:'Supermarkt/Kanban'},g=x=>String(x??'').trim()||'–';let t='';
  for(const [k,lab] of [['ist','IST-ZUSTAND'],['soll','SOLL-ZUSTAND']]){const v=p.vsm[k];if(!v.steps.length&&!has(v.customer.demand))continue;const c=vcalc(v),cu=v.customer;
-  t+=`\n--- ${lab} ---\nKunde: ${g(cu.name)} | Bedarf: ${g(cu.demand)} Stk/Tag | ${g(cu.shifts)} Schicht(en) à ${g(cu.shiftMin)} min, Pausen ${g(cu.breakMin)} min/Schicht | Kundentakt: ${fmt(c.takt,1)} s | Lieferung an Kunde: ${g(cu.delivery)}\n`;
+  t+=`\n--- ${lab} ---\nKunde: ${g(cu.name)} | Bedarf: ${g(cu.demand)} Stk/Tag | ${g(cu.shifts)} Schicht(en) à ${g(cu.shiftMin)} min, Pausen ${g(cu.breakMin)} min/Schicht | Kundentakt: ${tv(c.takt,c)} ${c.u} | Lieferung an Kunde: ${g(cu.delivery)}\n`;
   t+=`Lieferant: ${g(v.supplier.name)} (Anlieferung: ${g(v.supplier.delivery)})\nPlanung: ${g(v.info.planning)} | Kundenbestellung: ${g(v.info.custOrder)} | Lieferantenabruf: ${g(v.info.suppOrder)} | Steuerung: ${g(v.info.control)}\nProzessschritte (in Flussrichtung):\n`;
-  c.steps.forEach((s,i)=>{t+=`${i+1}. ${g(s.name)} | Bestand davor: ${g(s.inv)} Stk (${fmt(s.days,1)} AT), Steuerung ${fl[s.flow]||'–'} | ZZ ${g(s.ct)} s (eff. ${fmt(s.eff,1)} s) | Rüstzeit ${g(s.co)} min | Verfügbarkeit ${g(s.avail)} % | MA ${g(s.ops)} | Plätze ${g(s.par)} | Los ${g(s.lot)} | Ausschuss ${g(s.scrap)} % | Auslastung ${fmt(s.util,0)} %\n`});
-  t+=`Fertigwarenbestand: ${g(v.fg)} Stk (${fmt(c.fgDays,1)} AT)\nKennzahlen: Durchlaufzeit ${fmt(c.invDays,1)} AT, Bearbeitungszeit ${fmt(c.bz,0)} s, Flussgrad ${fmt(c.flow,2)} %, Bestand ${fmt(c.invPcs,0)} Stk, Mitarbeiter ${fmt(c.ops,1)} (theoretisch ${fmt(c.opsTheo,1)}), Engpass: ${c.bottleneck?g(c.bottleneck.name)+' ('+fmt(c.bottleneck.eff,1)+' s)':'–'}\n`;
+  c.steps.forEach((s,i)=>{t+=`${i+1}. ${g(s.name)} | Bestand davor: ${g(s.inv)} Stk (${fmt(s.days,1)} AT), Steuerung ${fl[s.flow]||'–'} | ZZ ${g(s.ct)} ${c.u} (eff. ${tv(s.eff,c)} ${c.u}) | Rüstzeit ${g(s.co)} ${v.coUnit||'min'} | Verfügbarkeit ${g(s.avail)} % | MA ${g(s.ops)} | Plätze ${g(s.par)} | Los ${g(s.lot)} | Ausschuss ${g(s.scrap)} % | Auslastung ${fmt(s.util,0)} %\n`});
+  t+=`Fertigwarenbestand: ${g(v.fg)} Stk (${fmt(c.fgDays,1)} AT)\nKennzahlen: Durchlaufzeit ${fmt(c.invDays,1)} AT, Bearbeitungszeit ${tv(c.bz,c,c.u==='s'?0:1)} ${c.u}, Flussgrad ${fmt(c.flow,2)} %, Bestand ${fmt(c.invPcs,0)} Stk, Mitarbeiter ${fmt(c.ops,1)} (theoretisch ${fmt(c.opsTheo,1)}), Engpass: ${c.bottleneck?g(c.bottleneck.name)+' ('+tv(c.bottleneck.eff,c)+' '+c.u+')':'–'}\n`;
   const miss=vchecks(v).filter(x=>!x[1]).map(x=>x[0]);if(miss.length)t+=`Noch nicht erfasst: ${miss.join(', ')}\n`}
  const ns=p.notes.filter(n=>n.tag==='vsm');if(ns.length)t+=`\nNotizen zum Wertstrom:\n${ns.map(n=>'- '+n.text.replace(/\s+/g,' ')).join('\n')}\n`;
  return t||'\n(Noch keine Wertstromdaten erfasst.)\n'}
@@ -1035,9 +1038,9 @@ function kNewTc(){const t=$('#ktc').value.trim();if(!t){$('#ktc').focus();return
 function kOpenTc(id){V.tcid=id;render();scrollTo(0,0)}
 function kDelTc(){if(!confirm('Zielzustand mit allen Experimenten löschen?'))return;const k=K();k.tcs=k.tcs.filter(x=>x.id!==V.tcid);V.tcid=null;save();render()}
 function kSetSt(st){curTc().status=st;save();render()}
-function kIstFromVsm(){const tc=curTc(),c=vcalc(P().vsm.ist);const t=`Aus Wertstrom (${dDE(Date.now())}): Kundentakt ${fmt(c.takt,1)} s · Durchlaufzeit ${fmt(c.invDays,1)} AT · Bearbeitungszeit ${fmt(c.bz,0)} s · Flussgrad ${fmt(c.flow,2)} % · Bestand ${fmt(c.invPcs,0)} Stk${c.bottleneck?` · Engpass ${c.bottleneck.name||'–'} (${fmt(c.bottleneck.eff,1)} s)`:''}`;tc.current=(tc.current?tc.current+'\n':'')+t;save();render();toast('Ist-Zustand übernommen')}
+function kIstFromVsm(){const tc=curTc(),c=vcalc(P().vsm.ist);const t=`Aus Wertstrom (${dDE(Date.now())}): Kundentakt ${tv(c.takt,c)} ${c.u} · Durchlaufzeit ${fmt(c.invDays,1)} AT · Bearbeitungszeit ${tv(c.bz,c,c.u==='s'?0:1)} ${c.u} · Flussgrad ${fmt(c.flow,2)} % · Bestand ${fmt(c.invPcs,0)} Stk${c.bottleneck?` · Engpass ${c.bottleneck.name||'–'} (${fmt(c.bottleneck.eff,1)} s)`:''}`;tc.current=(tc.current?tc.current+'\n':'')+t;save();render();toast('Ist-Zustand übernommen')}
 function kPresets(){const p=P(),c=vcalc(p.vsm.ist),g=p.greifLive,gpc=g.cycles?g.taps.filter(t=>t.cycle<g.cycles).length/g.cycles:NaN;
- return[['Durchlaufzeit','AT',rd(c.invDays,1),'Ziel kleiner'],['Engpass-Zykluszeit','s',rd(c.bottleneck?.eff,0),''],['Bestand','Stk',rd(c.invPcs,0),''],['Flussgrad','%',rd(c.flow,2),''],['Zykluszeit','s',null,''],['Ausschuss / Nacharbeit','%',null,''],['Griffe je Zyklus','',rd(gpc,1),''],['Stück je Stunde','Stk/h',null,'']]}
+ return[['Durchlaufzeit','AT',rd(c.invDays,1),'Ziel kleiner'],['Engpass-Zykluszeit',c.u,rd((c.bottleneck?.eff)/c.f,c.u==='s'?0:2),''],['Bestand','Stk',rd(c.invPcs,0),''],['Flussgrad','%',rd(c.flow,2),''],['Zykluszeit','s',null,''],['Ausschuss / Nacharbeit','%',null,''],['Griffe je Zyklus','',rd(gpc,1),''],['Stück je Stunde','Stk/h',null,'']]}
 function kAddMetric(i){const tc=curTc();let m;if(i==null){const n=$('#kmn').value.trim();if(!n){$('#kmn').focus();return}m={id:uid(),name:n,unit:$('#kmu').value.trim(),start:$('#kms').value.trim(),target:$('#kmt').value.trim()}}
  else{const pr=kPresets()[i];m={id:uid(),name:pr[0],unit:pr[1],start:pr[2]==null?'':String(pr[2]).replace('.',','),target:''}}tc.metrics.push(m);save();render();toast('Kennzahl hinzugefügt – Zielwert eintragen')}
 function kDelMetric(id){if(!confirm('Kennzahl mit allen Messwerten löschen?'))return;const tc=curTc();tc.metrics=tc.metrics.filter(m=>m.id!==id);tc.meas=tc.meas.filter(x=>x.mid!==id);save();render()}
